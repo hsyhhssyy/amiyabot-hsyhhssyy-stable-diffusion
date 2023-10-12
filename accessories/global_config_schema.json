@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "sd_docs_url": {
+      "title": "Docs Url",
+      "description": "你的WebUI的FastApi文档路径，通常来说是类似于“http://localhost:7777/docs”的地址，你需要试着访问一下看看是否能使用",
+      "type": "string"
+    },
+    "default_model": {
+      "title": "默认模型",
+      "description": "anime使用的Model/Checkpoint",
+      "type": "object",
+      "properties": {
+        "model": {
+          "title": "模型",
+          "description": "Model/Checkpoint",
+          "type": "string",
+          "enum": [
+            "..."
+          ]
+        },
+        "prompts": {
+          "title": "提示词",
+          "description": "Prompts",
+          "type": "string"
+        },
+        "sampler": {
+          "title": "采样器",
+          "description": "Sampler",
+          "type": "string"
+        }
+      }
+    },
+    "model_selector": {
+      "title": "模型选择",
+      "description": "处理不同场景下模型的选择",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "style": {
+            "title": "style",
+            "description": "Model/Checkpoint",
+            "type": "string",
+            "enum": [
+              "Chibi",
+              "Anime",
+              "Manga",
+              "Photographic",
+              "Isometric",
+              "Low_Poly",
+              "Line_Art",
+              "3D_Model",
+              "Pixel_Art",
+              "Watercolor"
+            ]
+          },
+          "model": {
+            "title": "模型",
+            "description": "Model/Checkpoint",
+            "type": "string",
+            "enum": [
+              "..."
+            ]
+          },
+          "prompts": {
+            "title": "提示词",
+            "description": "Prompts",
+            "type": "string"
+          },
+          "sampler": {
+            "title": "采样器",
+            "description": "Sampler",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "lora_resource_dir": {
+      "title": "Lora下载到",
+      "description": "Lora的下载目录。",
+      "type": "string"
+    },
+    "positive_prompts": {
+      "title": "Positive Prompts",
+      "description": "提示词，会被应用于每一个生成",
+      "type": "string"
+    },
+    "negative_prompts": {
+      "title": "Negative Prompts",
+      "description": "负面提示词，会被应用于每一个生成",
+      "type": "string"
+    },
+    "no_service_prompt": {
+      "title": "无服务提示",
+      "description": "如果SD服务无法连接，兔兔会回复的话。",
+      "type": "string"
+    },
+    "show_log": {
+      "title": "调试日志",
+      "description": "开启后将写入用于调试的大量日志。",
+      "type": "boolean"
+    },
+    "output_grid_first": {
+      "title": "先输出预览图",
+      "description": "开启后将写入用于调试的大量日志。",
+      "type": "boolean"
+    },
+    "save_result": {
+      "title": "保存生成结果",
+      "description": "开启后将写入用于调试的大量日志。",
+      "type": "boolean"
+    },
+    "word_replace": {
+      "title": "词语替换",
+      "type": "array",
+      "description": "当检测到对应的词汇时是执行替换",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "检测词",
+            "type": "string",
+            "description": "一个字符串，检测到这个字符串就会触发处理。"
+          },
+          "value": {
+            "title": "附加Prompt",
+            "type": "string",
+            "description": "检测到检测词时，会附加一些内容到prompt中。可以用来实现附加Lora等功能。"
+          },
+          "erase_old": {
+            "title": "删除旧词汇",
+            "type": "boolean",
+            "description": "是否将旧的词汇直接删除"
+          },
+          "replacer": {
+            "title": "替换用词",
+            "type": "string",
+            "description": "是否将旧的词汇直接删除"
+          }
+        }
+      }
+    }
+  }
+}
