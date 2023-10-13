@@ -29,6 +29,14 @@
           "title": "采样器",
           "description": "Sampler",
           "type": "string"
+        },
+        "vae": {
+          "title": "VAE",
+          "description": "VAE",
+          "type": "string",
+          "enum": [
+            "..."
+          ]
         }
       }
     },
@@ -73,6 +81,14 @@
             "title": "采样器",
             "description": "Sampler",
             "type": "string"
+          },
+          "vae": {
+            "title": "VAE",
+            "description": "VAE",
+            "type": "string",
+            "enum": [
+              "..."
+            ]
           }
         }
       }
@@ -112,7 +128,12 @@
       "description": "开启后将写入用于调试的大量日志。",
       "type": "integer",
       "minimum": 1,
-      "maximum": 4
+      "maximum": 9
+    },
+    "standard_resolution": {
+      "title": "默认分辨率",
+      "description": "开启后将写入用于调试的大量日志。",
+      "type": "string"
     },
     "save_result": {
       "title": "保存生成结果",

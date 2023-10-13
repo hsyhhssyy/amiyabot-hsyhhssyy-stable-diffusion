@@ -1,42 +1,28 @@
-import os
-import re
+请提取下面这段话中的人物
+[
+阿公阿伯过年好，除夕快乐，夕小姐要给大家表演一曲苏格兰风笛。
+]
+请判断 "年小姐","夕小姐","风笛小姐","阿先生" 是否出现在这个场景中。
 
-from amiyabot import Chain
-from .plugin_instance import StableDiffusionPluginInstance
-from .stable_diffusion import txt_to_img
+一些例子：
 
-curr_dir = os.path.dirname(__file__)
+“我家的阿姨一年三百块。” 中的“阿”不指代人物, 返回false。
+“你和你的种族令我感到可笑。”中的“令”不指代人物，返回false。
+“夕宝是我的老婆。”中的“夕”指代人物，返回true。
 
-async def ChatGPTResponse(plugin:StableDiffusionPluginInstance ,data):
+请注意考虑常见的变体比如X宝，X先生等。
 
-    plugin.debug_log(f"进入兔兔绘图功能")
+我的请求内容是：
+[
+大哥大嫂过年好，除夕快乐，干员年要给大家表演一曲苏格兰风笛。
+]
 
-    await data.send(Chain(data, at=False).text(f'兔兔要开始画图了，请稍等......'))
-    
-    prompt = None
+请将结果以Json的格式输出，格式如下
+[
+    {"char":"年","is_character":true/false},
+    {"char":"夕","is_character":true/false},
+    {"char":"风笛","is_character":true/false},
+    {"char":"阿","is_character":true/false}
+]
 
-    match = re.search(r'兔兔绘图[:：]\s?([\s\S]*)', data.text)
-    if match:
-        prompt = match.group(1)
-    
-    if not prompt:
-        plugin.debug_log(f"正则表达式未通过")
-        await data.send(Chain(data, at=False).text(f'抱歉，您提出的要求格式不正确。'))
-        return
-    
-    await txt_to_img(plugin, data, prompt)
-    
-
-    return
-
-上面是我的一个python的代码,用来在qq消息bot中提供绘图功能
-他有一个严重的问题就是,txt_to_img函数不可以多线程调用.但是ChatGPTResponse是可能会因为多个群聊中的多个人发出指令而被多线程触发的.
-
-因此我需要做一个改动,提供队列能力(频道id可以从data.channel_id获取.)
-
-每个频道有人发送指令时,自动进入队列.每个频道最多允许排队10个任务.频道队列已满时提示并禁止入队
-全局超过30个任务时,提示并禁止入队
-
-而text_to_img使用一个另外启动的线程,遍历全局队列并进行绘图任务,
-
-mklink /D "C:\StableDiffusion\Aki\sd-webui-aki-v4.2\embeddings\Arknights-Auto" "\\192.168.31.25\mnt\raid1-pool1\amiya-bot\2912336120\resource\stable-diffusion\embeddings"
+![Alt text](images/image.png)

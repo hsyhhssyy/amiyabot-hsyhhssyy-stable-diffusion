@@ -3,146 +3,170 @@
     "default_model":{
         "model":"dreamshaper_8.safetensors [879db523c3]",
         "prompts":"absurdres, highres, masterpiece, best quality, cinematic light",
-        "sampler":"DPM++ 2M SDE Karras"
+        "sampler":"DPM++ 2M SDE Karras",
+        "vae":"..."
     },
     "model_selector":[
         {
             "style":"Anime",
             "model":"abyssorangemix3AOM3_aom3a1b.safetensors [5493a0ec49]",
             "prompts":"absurdres, highres, masterpiece, best quality, cinematic light",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"Anime",
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },       
         {
             "style":"Manga",
             "model":"abyssorangemix3AOM3_aom3a1b.safetensors [5493a0ec49]",
             "prompts":"absurdres, highres, masterpiece, best quality, cinematic light, <lora:animeoutlineV4_16:1>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"Manga",
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi, <lora:animeoutlineV4_16:1>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },     
         {
             "style":"Photographic",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
             "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting,",
-            "sampler":"Euler a"
+            "sampler":"Euler a",
+            "vae":"..."
         },        
         {
             "style":"Photographic",
             "model":"dreamshaper_8.safetensors [879db523c3]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Photographic",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Line_Art",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
             "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting, <lora:Lineart-v2.0:1>",
-            "sampler":"Euler a"
+            "sampler":"Euler a",
+            "vae":"..."
         },        
         {
             "style":"Line_Art",
             "model":"dreamshaper_8.safetensors [879db523c3]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:Lineart-v2.0:1>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Line_Art",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:Lineart-v2.0:1>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"3D_Model",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
             "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting,",
-            "sampler":"Euler a"
+            "sampler":"Euler a",
+            "vae":"..."
         },        
         {
             "style":"3D_Model",
             "model":"dreamshaper_8.safetensors [879db523c3]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"3D_Model",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"Isometric",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
             "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, miniature, landscape, isometric, <lora:miniature_V1:0.8>",
-            "sampler":"Euler a"
+            "sampler":"Euler a",
+            "vae":"..."
         },        
         {
             "style":"Isometric",
             "model":"dreamshaper_8.safetensors [879db523c3]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, miniature, landscape, isometric, <lora:miniature_V1:0.8>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Isometric",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, miniature, landscape, isometric, <lora:miniature_V1:0.8>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Pixel_Art",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"pixel art, <lora:pixel_f2:0.8>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },    
         {
             "style":"Pixel_Art",
             "model":"abyssorangemix3AOM3_aom3a1b.safetensors [5493a0ec49]",
             "prompts":"absurdres, highres, masterpiece, best quality, pixel art, <lora:pixel_f2:0.8>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"Pixel_Art",
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi, pixel art, <lora:pixel_f2:0.8>",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },
         {
             "style":"Watercolor",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
             "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting, <lora:Watercolor-000012:1>",
-            "sampler":"Euler a"
+            "sampler":"Euler a",
+            "vae":"..."
         },        
         {
             "style":"Watercolor",
             "model":"dreamshaper_8.safetensors [879db523c3]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:chichi-v1fix-lora-32dim-8ep-novae-newcraft:1>, chch-style",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Watercolor",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:akagi_shun_offset:1>, akagi shun, watercolor",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         },        
         {
             "style":"Chibi",
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi",
-            "sampler":"DPM++ 2M Karras"
+            "sampler":"DPM++ 2M Karras",
+            "vae":"..."
         }
     ],
     "word_replace": [
@@ -150,9 +174,10 @@
     "output_grid_first":true,
     "save_result":true,
     "batch_count":4,
+    "standard_resolution":"512:512",
     "lora_resource_dir":"",
     "positive_prompts":"<lyco:GoodHands-beta2_Locon:1.0>, nice hands, perfect hands,",
-    "negative_prompts":"EasyNegative,ng_deepnegative_v1_75t,verybadimagenegative_v1.3",
+    "negative_prompts":"nsfw, EasyNegative,ng_deepnegative_v1_75t,verybadimagenegative_v1.3",
     "no_service_prompt":"兔兔现在无法为您提供绘图服务，兔兔绘图服务只在每天早9点到晚5点开放，您可以在这个时间段内再次尝试。",
     "show_log":false
 }

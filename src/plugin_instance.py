@@ -15,7 +15,6 @@ from core import bot as main_bot
 from amiyabot.log import LoggerManager
 
 from ..lib.webuiapi import WebUIApi
-from ..lib.download_lora import WORD_REPLACE_CONFIG_PATH
 
 curr_dir = os.path.dirname(__file__)
 
@@ -72,6 +71,18 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
             stack_trace = traceback.format_exc()
             self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
         
+        new_values = ["..."]
+        
+        if "vae" in self.cache:
+            new_values += self.cache["vae"]
+            self.debug_log(f"vae : {new_values}")
+        try:                        
+            data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
+            data["properties"]["model_selector"]["items"]["properties"]["vae"]["enum"] = new_values
+        except KeyError as e:
+            stack_trace = traceback.format_exc()
+            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
         return data
 
     def __start_periodic_task(self, task, interval):
@@ -128,77 +139,17 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         except Exception as e:
             self.debug_log(f"Error accessing API: {e}")
         
+        try:
+            self.__cached_docs = docs
+
+            models = self.webui_api.get_sd_vae()
+            # 将查询结果存储到缓存中
+            self.cache["vae"] = [model["model_name"] for model in models]
+        except Exception as e:
+            self.debug_log(f"Error accessing API: {e}")
+
         self.debug_log(f"WebUIApi刷新完毕...")
-
-    def word_replace(self,answer_item,original_prompt):
-
-        text = answer_item["prompt"]
-        characters = answer_item["subjects"]
-
-        replace_source = self.get_config("word_replace")
-
-        with open(WORD_REPLACE_CONFIG_PATH, 'r') as file:
-            word_replace_config = json.load(file)
-        
-        if word_replace_config:
-            replace_source += word_replace_config
-
-        # 初始化一个空字符串用于拼接新增内容
-        append_str = ""
-
-        # 遍历JSON数组进行处理
-        for item in replace_source:
-
-            splited_item_name = item["name"].split(",")
-
-            for name in splited_item_name:
-                name = name.strip()
-                if (len(name) == 1 and name in characters) or (len(name) > 1 and any(name in char for char in characters)):
-                    self.debug_log(f"Subject替换找到关键词: {name}")
-                    append_str += item["value"] + ","
-                    if item["erase_old"] and len(name) != 1:
-                        if "replacer" in item:
-                            text = text.replace(name, item["replacer"])
-                        else:
-                            text = text.replace(name, "")
-                    break
-
-
-        if append_str == "":
-            for item in replace_source:
-                splited_item_name = item["name"].split(",")
-
-                for name in splited_item_name:
-                    name = name.strip()
-                    if len(name)>1 and name in original_prompt:
-                        self.debug_log(f"词语替换找到关键词: {name}")
-                        append_str += item["value"] + ","
-                        # 词语替换不进行EraseOld
-
-        append_str = append_str.rstrip(",")
-
-        return text , append_str
-
-    def select_model(self,model_name):
-        model_selector = self.get_config("model_selector")
-
-        self.debug_log(f"选择模型: {model_name.lower()} from {len(model_selector)}")
-
-        selected_models=[]
-        if model_selector:
-            for model in model_selector:
-                if model["style"].lower() == model_name.lower():
-                    selected_models.append(model)
-        
-        if len(selected_models) == 0:
-            default_model = self.get_config("default_model")
-            if default_model:
-                return default_model
-            return None
-
-        # 随机选择一个
-        return random.choice(selected_models)
-
+    
     def debug_log(self, message):
         show_log = self.get_config("show_log")
         if show_log == True:

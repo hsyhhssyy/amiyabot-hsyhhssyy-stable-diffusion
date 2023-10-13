@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 import os
 import random
 import re
@@ -9,14 +10,18 @@ from PIL import Image
 from io import BytesIO
 
 from amiyabot.network.download import download_sync
-from amiyabot import Message, log, Chain
-from ..lib.extract_json import ask_chatgpt_with_json
+from amiyabot import Message, Chain
+
+from core.resource.arknightsGameData import ArknightsGameData
+
 from .plugin_instance import StableDiffusionPluginInstance,ALWAYS_ON_SCRIPTS_PATH
-from ..lib.webuiapi import HiResUpscaler
+
 from ..lib.command_line_utils import parse_command
-from ..lib.string_utils import is_any_chinese
 from ..lib.mathmatic import compute_dimensions
 from ..lib.pil_utils import combine_images
+from ..lib.download_lora import WORD_REPLACE_CONFIG_PATH
+
+from ..src.chatgpt_presets import identify_character, generate_danbooru_tags
 
 curr_dir = os.path.dirname(__file__)
 
@@ -24,6 +29,87 @@ OUTPUT_SAVE_PATH = f"{curr_dir}/../../../resource/stable-diffusion/output"
 
 if not os.path.exists(OUTPUT_SAVE_PATH):
     os.makedirs(OUTPUT_SAVE_PATH)
+
+async def word_replace(plugin,original_prompt:str):
+    
+    replace_source = plugin.get_config("word_replace")
+    
+    with open(WORD_REPLACE_CONFIG_PATH, 'r') as file:
+        word_replace_config = json.load(file)
+    
+    if word_replace_config:
+        replace_source += word_replace_config
+    
+    candidates = []
+
+    for item in replace_source:
+        splited_item_name = item["name"].split(",")
+
+        for name in splited_item_name:
+            name = name.strip()
+
+            if name in original_prompt:
+                candidates.append(item)
+                break
+    
+    # 通过字符串匹配,找到预筛的干员列表
+    not_operator_candidate = [candidate for candidate in candidates if not candidate.get("operator")]
+
+    # 对于来自WORD_REPLACE_CONFIG_PATH的干员,需要通过ChatGPT识别角色
+    operator_candidate = [candidate for candidate in candidates if candidate.get("operator")]
+    
+    candidates_for_chatgpt = {}
+
+    id_to_operator = {op.id: op for op in ArknightsGameData.operators.values()}
+
+    for operator in operator_candidate:
+        op_id = operator["operator"]
+        op = id_to_operator.get(op_id, None) 
+
+        if not op:
+            plugin.debug_log(f"找不到干员: {op_id}")
+            continue
+
+        # 根据 op.sex是男还是女,为op.name添加后缀先生或者小姐
+        if op.sex == "男":  # Assuming the value for male is '男'
+            op_name_with_suffix = op.name + "先生"
+        elif op.sex == "女":  # Assuming the value for female is '女'
+            op_name_with_suffix = op.name + "小姐"
+        else:
+            op_name_with_suffix = op.name + "干员"
+
+
+        candidates_for_chatgpt[op_name_with_suffix]=operator
+
+    char_json = await identify_character(plugin, candidates_for_chatgpt.keys(), original_prompt)
+
+    if not char_json or char_json == {}:
+        plugin.debug_log(f"未匹配到任何干员")
+        return not_operator_candidate + []
+    
+    operator_candidate_final = [candidates_for_chatgpt[char_name] for char_name in char_json]
+
+    plugin.debug_log(f"匹配到干员: {char_json} , {operator_candidate_final}")
+
+    return not_operator_candidate + operator_candidate_final
+
+def select_model(plugin,model_name):
+    model_selector = plugin.get_config("model_selector")
+    selected_models=[]
+    if model_selector:
+        for model in model_selector:
+            if model["style"].lower() == model_name.lower():
+                selected_models.append(model)
+    
+    if len(selected_models) == 0:
+        default_model = plugin.get_config("default_model")
+        if default_model:
+            return default_model
+        return None
+
+    # 随机选择一个
+    return random.choice(selected_models)
+
 
 async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, user_prompt: str, task: str):
 
@@ -33,63 +119,48 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
     ar_param = param_dict.get('ar')
 
-    width, height = compute_dimensions(ar_param)
+    width, height = compute_dimensions(ar_param,plugin.get_config("standard_resolution"))
 
-    command = "<<PROMPT>>"
+    if param_dict.get('hr') == True:
+        # 修改长宽，使得保持纵横比的情况下总像素面积提升一倍
+        scale_factor = math.sqrt(2)
+        width = int(width * scale_factor)
+        height = int(height * scale_factor)
+    
+    if param_dict.get('lr') == True:
+        # 修改长宽，使得保持纵横比的情况下总像素面积缩小一半
+        scale_factor = math.sqrt(0.5)
+        width = int(width * scale_factor)
+        height = int(height * scale_factor)
 
-    with open(f'{curr_dir}/../templates/sd-template-v4.txt', 'r', encoding='utf-8') as file:
-        command = file.read()
-
-    command = command.replace("<<PROMPT>>", user_prompt)
-
-    batch_count = plugin.get_config("batch_count")
-    command = command.replace("<<BATCH_COUNT>>", f'{batch_count}')
-
-    retry = 0
-
-    images_in_prompt = []
-
+    images_in_prompt = None
     if data.image:
         for imgPath in data.image:
             imgBytes = download_sync(imgPath)
             pilImage = Image.open(BytesIO(imgBytes))
             images_in_prompt.append(pilImage)
 
-    while retry < 3:
-        retry += 1
-        success, answer = await ask_chatgpt_with_json(plugin.chatgpt_plugin, prompt=command, model='gpt-4')
+    # 对提示词搜索角色
 
-        check_passed = True
+    character_candidate = await word_replace(plugin, user_prompt)
 
-        if success and len(answer) > 0:
-            for answer_item in answer[0]:
-                subjects = answer_item["subjects"]
-                # subject里没中文不算成功
-                # 但是三次都没有中文就算成功,因为可能是英文prompt
-                if not is_any_chinese(subjects):
-                    plugin.debug_log(f"Subject不包含中文: {subjects}")
-                    check_passed = False
-                    break
-        else:
-            check_passed = False
+    danbooru_tags = await generate_danbooru_tags(plugin, user_prompt)
 
-        if check_passed:
-            break
+    # 读取
 
-    if success and len(answer) > 0:
+    if len(danbooru_tags) > 0:
         drawing_params = []
 
-        for answer_item in answer[0]:
+        for answer_item in danbooru_tags:
 
+            # 处理提示词
             sd_prompt = answer_item["prompt"]
-
-            sd_prompt, append_str = plugin.word_replace(
-                answer_item, user_prompt)
-
-            sd_model = plugin.select_model(answer_item["style"])
+            for char_setting in character_candidate:
+                sd_prompt = sd_prompt + "," + char_setting["value"]
 
             options = {}
 
+            sd_model = select_model(plugin, answer_item["style"])
             if sd_model is not None and sd_model["model"] != "...":
                 options['sd_model_checkpoint'] = sd_model["model"]
 
@@ -99,8 +170,9 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
             if sd_model is not None and sd_model["prompts"] != "...":
                 sd_prompt = sd_prompt + "," + sd_model["prompts"]
-
-            sd_prompt = sd_prompt + ", " + append_str
+            
+            if sd_model is not None and sd_model["vae"] != "..." and sd_model["vae"] != "":
+                options['sd_vae'] = sd_model["vae"]
 
             positive_prompts = plugin.get_config("positive_prompts")
 
@@ -119,6 +191,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 # below are params for my logic
                 "sd_model": sd_model,
                 "images": images_in_prompt,
+                "task":task,
                 # below are params for webui_api.set_options
                 "options": options,
                 # below are params for webui_api.txt2img
@@ -134,15 +207,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "alwayson_scripts": json.load(open(ALWAYS_ON_SCRIPTS_PATH, 'r', encoding='utf-8'))
             }
 
-            plugin.debug_log(f"当前任务: {task}")
-            plugin.debug_log(f"使用模型: {drawing_param['sd_model']}")
-            plugin.debug_log(f"准备绘制: {drawing_param['prompt']}")
-            plugin.debug_log(f"负面提示: {drawing_param['negative_prompt']}")
-
             drawing_params.append(drawing_param)
-
-            # # break for testing
-            # break
 
         use_grid = plugin.get_config("output_grid_first")
 
@@ -158,6 +223,11 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
         answer_item_count = 0
 
         for drawing_param in drawing_params:
+            
+            plugin.debug_log(f"当前任务: {drawing_param['task']}")
+            plugin.debug_log(f"使用模型: {drawing_param['sd_model']} VAE:{drawing_param['sd_model'].get('vae')}")
+            plugin.debug_log(f"准备绘制: {drawing_param['prompt']}")
+            plugin.debug_log(f"负面提示: {drawing_param['negative_prompt']}")
 
             answer_item_count += 1
             start_time = datetime.datetime.now()
@@ -199,7 +269,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 buffer = BytesIO()
                 result.image.save(buffer, format="PNG")
                 img_bytes = buffer.getvalue()
-                await data.send(Chain(data, at=False).text(f'绘图结果({answer_item_count}/{len(answer[0])})，用时{total_second}秒:').image(img_bytes))
+                await data.send(Chain(data, at=False).text(f'绘图结果({answer_item_count}/{len(drawing_params)})，用时{total_second}秒:').image(img_bytes))
 
         grid_total_second = round(
             (datetime.datetime.now() - grid_start_time).total_seconds(), 2)
@@ -211,7 +281,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
             img_bytes = buffer.getvalue()
             await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
     else:
-        plugin.debug_log(f"ChatGPT Response not success: {answer}")
+        plugin.debug_log(f"ChatGPT Response not success")
         await data.send(Chain(data, at=False).text(f'真抱歉，兔兔画图失败了，请再试一次吧。'))
 
     plugin.debug_log(f"退出兔兔绘图功能")

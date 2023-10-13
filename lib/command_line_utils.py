@@ -1,8 +1,9 @@
 import re
 
 import re
+from typing import Tuple
 
-def parse_command(s: str) -> (str, dict):
+def parse_command(s: str) -> Tuple[str, dict]:
     # 初始化一个空字典来存放结果
     param_dict = {}
     

@@ -1,27 +1,22 @@
 from PIL import Image
+import math
 
 def combine_images(images):
     if not images:
         raise ValueError("The images list is empty!")
 
     width, height = images[0].size
+    aspect_ratio = width / height
 
-    # 根据给定的图像数量决定输出图像的大小
-    if len(images) == 1:
-        new_img = Image.new('RGB', (width, height))
-        positions = [(0, 0)]
-    elif len(images) == 2:
-        new_img = Image.new('RGB', (2 * width, height))
-        positions = [(0, 0), (width, 0)]
-    elif len(images) == 3:
-        new_img = Image.new('RGB', (2 * width, 2 * height))
-        positions = [(0, 0), (width, 0), (0, height)]
-    elif len(images) == 4:
-        new_img = Image.new('RGB', (2 * width, 2 * height))
-        positions = [(0, 0), (width, 0), (0, height), (width, height)]
-    else:
-        raise ValueError(
-            "The images list should contain between 1 and 4 images.")
+    # 计算基于长宽比的修正图片数量
+    adjusted_n = len(images) * aspect_ratio
+    rows = math.ceil(math.sqrt(adjusted_n))
+    cols = math.ceil(len(images) / rows)
+
+    # 创建一个新的空白图像
+    new_img = Image.new('RGB', (cols * width, rows * height))
+
+    positions = [(col * width, row * height) for row in range(rows) for col in range(cols)]
 
     # 将图像粘贴到新的空白图像上
     for img, position in zip(images, positions):
