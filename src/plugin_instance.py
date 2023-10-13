@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import threading
 import traceback
 import requests
@@ -20,6 +21,9 @@ curr_dir = os.path.dirname(__file__)
 
 logger = LoggerManager('StableDiffusion')
 
+PLUGIN_ACCESSORIES_DIR = f"{curr_dir}/../../../resource/stable-diffusion/"
+ALWAYS_ON_SCRIPTS_PATH = f"{curr_dir}/../../../resource/stable-diffusion/alwayson_scripts.json"
+
 class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
     webui_api: Union[WebUIApi, None] = None
     cache = {}
@@ -28,12 +32,21 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
 
     def install(self):
         pass
-    def load(self):        
+    def load(self):
+
+        if not os.path.exists(PLUGIN_ACCESSORIES_DIR):
+            os.makedirs(PLUGIN_ACCESSORIES_DIR)
 
         self.chatgpt_plugin = main_bot.plugins['amiyabot-hsyhhssyy-chatgpt']
 
         # 创建一个定时任务，时间间隔为30秒
         self.__start_periodic_task(self.__refresh_api, 30)
+
+        if not os.path.exists(ALWAYS_ON_SCRIPTS_PATH):            
+            # 拷贝默认alwayson_scripts到这个路径
+            default_alwayson_script_path = f"{curr_dir}/../accessories/alwayson_scripts.json"
+            shutil.copyfile(default_alwayson_script_path, ALWAYS_ON_SCRIPTS_PATH)
+
 
     def generate_schema(self):
 

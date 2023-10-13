@@ -38,3 +38,5 @@ async def ChatGPTResponse(plugin:StableDiffusionPluginInstance ,data):
 全局超过30个任务时,提示并禁止入队
 
 而text_to_img使用一个另外启动的线程,遍历全局队列并进行绘图任务,
+
+mklink /D "C:\StableDiffusion\Aki\sd-webui-aki-v4.2\embeddings\Arknights-Auto" "\\192.168.31.25\mnt\raid1-pool1\amiya-bot\2912336120\resource\stable-diffusion\embeddings"

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Any
 
+# Code from https://github.com/mix1009/sdwebuiapi
 
 class Upscaler(str, Enum):
     none = "None"

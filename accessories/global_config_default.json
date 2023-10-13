@@ -17,13 +17,7 @@
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi",
             "sampler":"DPM++ 2M Karras"
-        },
-        {
-            "style":"Anime",
-            "model":"meinamix_meinaV11.safetensors [54ef3e3610]",
-            "prompts":"masterpiece, best quality,",
-            "sampler":"DPM++ 2M Karras"
-        },        
+        },       
         {
             "style":"Manga",
             "model":"abyssorangemix3AOM3_aom3a1b.safetensors [5493a0ec49]",
@@ -35,13 +29,7 @@
             "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
             "prompts":"masterpiece, best quality, chibi, <lora:animeoutlineV4_16:1>",
             "sampler":"DPM++ 2M Karras"
-        },
-        {
-            "style":"Manga",
-            "model":"meinamix_meinaV11.safetensors [54ef3e3610]",
-            "prompts":"masterpiece, best quality, <lora:animeoutlineV4_16:1>",
-            "sampler":"DPM++ 2M Karras"
-        },        
+        },     
         {
             "style":"Photographic",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
@@ -135,19 +123,25 @@
         {
             "style":"Watercolor",
             "model":"revAnimatedFp16_122.safetensors [3e654848b5]",
-            "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting, <lora:Colorwater_v4:1>",
+            "prompts":"(((masterpiece))), (((best quality))), extremely detailed, hyper detailed, detailed background, extreme detail background, sharp details, extremely detailed face, perfect lighting, <lora:Watercolor-000012:1>",
             "sampler":"Euler a"
         },        
         {
             "style":"Watercolor",
             "model":"dreamshaper_8.safetensors [879db523c3]",
-            "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:Colorwater_v4:1>",
+            "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:chichi-v1fix-lora-32dim-8ep-novae-newcraft:1>, chch-style",
             "sampler":"DPM++ 2M Karras"
         },        
         {
             "style":"Watercolor",
             "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
-            "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:Colorwater_v4:1>",
+            "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:akagi_shun_offset:1>, akagi shun, watercolor",
+            "sampler":"DPM++ 2M Karras"
+        },        
+        {
+            "style":"Chibi",
+            "model":"qteamixQ_omegaFp16.safetensors [39d6af08b2]",
+            "prompts":"masterpiece, best quality, chibi",
             "sampler":"DPM++ 2M Karras"
         }
     ],
@@ -155,6 +149,7 @@
     ],
     "output_grid_first":true,
     "save_result":true,
+    "batch_count":4,
     "lora_resource_dir":"",
     "positive_prompts":"<lyco:GoodHands-beta2_Locon:1.0>, nice hands, perfect hands,",
     "negative_prompts":"EasyNegative,ng_deepnegative_v1_75t,verybadimagenegative_v1.3",

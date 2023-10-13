@@ -63,7 +63,11 @@ async def process_queue():
             if len(get_global_queue()) > 0:
                 global_queue_length_str = f"(全局队列:{len(get_global_queue())})"
             
-            await data.send(Chain(data, at=False).text(f'兔兔开始绘制：{global_queue_length_str}\n{prompt}\n[小提示：{random_hint}]'))
+            is_img_to_img=""
+            if data.image:
+                is_img_to_img = "（图生图）"
+
+            await data.send(Chain(data, at=False).text(f'兔兔开始绘制{is_img_to_img}，约需100-200秒，请稍等：{global_queue_length_str}\n{prompt}\n[小提示：{random_hint.strip()}]'))
             await simple_img_task(plugin, data, prompt,task)
         except Exception as e:
             stack_trace = traceback.format_exc()
@@ -76,7 +80,7 @@ async def process_queue():
         current_task_count = 0
         
         # 异步休眠以减少CPU使用率
-        await asyncio.sleep(10)
+        await asyncio.sleep(1)
 
 def run_event_loop():
     asyncio.set_event_loop(new_loop)
@@ -113,11 +117,11 @@ async def ChatGPTResponse(plugin: StableDiffusionPluginInstance, data):
 
         channel_task_count[data.channel_id] = channel_tasks + 1
 
-        # 修改的部分
         if current_task_count > 0 or task_queue.qsize() > 0:
             await data.send(Chain(data, at=False).text(f'兔兔当前有其他任务，您的任务已加入队列，请稍等......'))
         else:
-            await data.send(Chain(data, at=False).text(f'兔兔要开始画图了，请稍等......'))
+            # await data.send(Chain(data, at=False).text(f'兔兔要开始画图了，请稍等......'))
+            pass
 
         if data.image and len(data.image) > 0:
             task_queue.put({'plugin': plugin, 'data': data, 'prompt': prompt, 'task': "ImageToImage"})

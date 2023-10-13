@@ -1,10 +1,12 @@
-# Stable Diffusion
+# Stable Diffusion + ChatGPT
 
 提供一个StableDiffusion WebUI的兔兔接口。
-要想使用这个功能，首先你需要有一个本地的StableDiffuion部署。
-如果你还不知道怎么自己部署一个自己的绘图AI，你可以去看看B站大佬秋叶akki的教程。
 
-**<span style="color:green;">要想使用本功能，你必须要对如何使用StableDiffuion有一定基础的了解，否则本插件很多配置项的功能你都不知道是干什么用的。虽然本插件开箱即用的能力还凑合。</span>**
+> 💡 **提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程。
+
+**有一些必要WebUI的插件需要安装，他们都列在最下面的必要插件章节中**
+
+**<span style="color:green;">要想使用本功能，你必须要 1. 对如何使用StableDiffuion有了解, 能够使用SD进行绘图和修图等操作. 2. 拥有一个ChatGPT的API Key. 3. 网络环境可以访问ChatGPT, Civitai网站. 4. 安装我的另一个ChatGPT插件（可不设置为启用）并配置API Key</span>**
 
 ## 绘图命令
 
@@ -22,14 +24,14 @@
 
 ### 配置webui地址
 
-首先打开你的webui，然后拉到页面最下方，点击API链接。
+* 打开您的webui。
+* 滚动至页面最下方，点击API链接。
 
 ![Alt text](image.png)
 
-然后复制打开的页面的地址到设置中的`Doc Url`配置项中。
+* 将新页面的地址复制，并粘贴至Doc Url配置项。
 
-注：本插件暂不支持WebUI登录认证，你的WebUI地址必须可以匿名访问。
-WebUI自带的认证功能会在未来版本支持。如果你使用其他互联网服务商提供的网络部署服务，并且拥有独特的认证方式，请到Git提交Issue申请支持。
+> 注：本插件暂不支持WebUI登录认证，你的WebUI地址必须可以匿名访问。WebUI自带的认证功能会在未来版本支持。如果你使用其他互联网服务商提供的网络部署服务，并且拥有独特的认证方式，请到GitHub提交Issue申请支持。
 
 ### 等待连接
 
@@ -46,31 +48,37 @@ WebUI自带的认证功能会在未来版本支持。如果你使用其他互联
 
 ### 模型选择
 
-打开兔兔Console，在本插件的设置里，全局设置中，找到‘模型选择’配置项。
+* 打开兔兔Console，在本插件设置中，进入‘模型选择’配置项。
+* 根据需要配置模型和相应的prompt。
 
-在里面添加复数个模型和对应的prompt。
+**工作原理**：
 
-这个模块的工作原理是这样的：
-每次用户说话，兔兔会生成四张图像，其实是ChatGPT的Prompt会尝试理解用户的输出，然后给出四段danboru tag。
-这四段tag会被同时标记为下面几种类型：
+1. **图像生成**： 
+   - 当用户发言时，兔兔会生成四张图像。
+   - 这实际上是ChatGPT的Prompt会尝试理解用户的输出，然后给出四段danboru tag。
 
-"Anime", 动画
-"Manga", 漫画
-"Photographic", 照片
-"Isometric", 微距
-"Low_Poly", 
-"Line_Art", 素描
-"3D_Model", 3D模型
-"Pixel_Art", 像素风
-"Watercolor" 水彩
+2. **Tag 类型**：
+   - 生成的这四段tag会被标记为以下几种类型之一
 
-以及我自己定义的类型
+   - SDXL标准Style类型：
+     - "Anime" - 动画
+     - "Manga" - 漫画
+     - "Photographic" - 照片
+     - "Isometric" - 微距
+     - "Low_Poly"
+     - "Line_Art" - 素描
+     - "3D_Model" - 3D模型
+     - "Pixel_Art" - 像素风
+     - "Watercolor" - 水彩
 
-"Chibi", Q版
+   - 还包括我自定义的类型：
+     - "Chibi" - Q版
 
-如果你在某个类型下配置了1个或者多个模型，那么这段tag的底模就会是你选的这一个，同时系统也会自动将对应的prompt拼接到这段tag的最后。
-
-如果你某个类型没有定义模型，而ChatGPT生成了一段对应的tag，就会使用默认模型配置项里的模型。（所以如果你每个类型都提供至少一个项目的话，默认模型实际上不会被调用到）
+3. **模型配置**：
+   - 如果您为某个类型配置了一个或多个模型，那么该tag的底模就从对应的配置项中随机一个。
+   - 系统会自动将对应的prompt拼接到这段tag的最后。
+   - 如果您没有为某个类型定义模型，而ChatGPT生成了一个对应的tag，则将使用默认模型配置项中的模型。
+   - 如果您为每种类型都提供了至少一个模型，那么默认模型实际上不会被调用。
 
 ### 添加Lora
 
@@ -83,21 +91,32 @@ WebUI自带的认证功能会在未来版本支持。如果你使用其他互联
 
 然后，当兔兔检测到用户绘图指令提到了方舟的干员，他会自动拼接Lora和Embeddings进prompt中。
 
-- 群内单人锁
+在resources\stable-diffusion\lora-download-log.txt文件中,你可以看到下载的详情日志.
 
-- 下载lora脚本修改:
-1. 对于同一个干员的多个版本，只下载最好的那个(get_model_score)
-2. 如果文件不是safesensor,则不下载.
-3. 加入对lyco的支持---暂时跳过疑似Lyco的模型
+## 必要插件
 
-- 看一下Lora的混合,是什么问题导致的
-- 输出对干员的检测
+ADetailer
 
-- 德克萨斯和缄默德克萨斯会一起触发
+## 开箱即用
+
+* 你可能注意到了，本项目自带的默认配置文件并不是一个空白配置文件。
+* 默认配置文件的内容，就是我正在使用的配置内容。
+* 默认配置文件中含有我挑选的几个优质底模和画风Lora，他们在能够提供优质画面的同时，还能不过分影响角色Lora。
+* 在positive和negitive prompt中，还含有几个优化lora。
+* 这些lora都来自civitai，他们的列表如下：
+
+* 你可以选择将他们都下载下来，这样就可以直接使用我的配置文件。
+* 如果你想自己调教，你也可以自己挑选模型和配置。
+
+## 版权声明
+
+SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何使用AGPL协议的网络服务的代码也需要开源。因此，本项目同样遵循AGPL版权。
 
 ## 备注
 
-插件图标是我自己用StableDiffusion跑的。
+* 插件图标是使用StableDiffusion生成的。
+
+## 相关链接
 
 [项目地址:Github](https://github.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/)
 

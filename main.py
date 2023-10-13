@@ -20,7 +20,7 @@ def dynamic_get_global_config_schema_data():
 
 bot = StableDiffusionPluginInstance(
     name='StableDiffusion',
-    version='1.1.15',
+    version='1.1.17',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
     description='StableDiffusion本地调用插件',

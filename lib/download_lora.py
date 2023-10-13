@@ -245,7 +245,7 @@ def download_model(operator_id, model_json,plugin):
     else:
         prompt = prompt + ",".join(trained_words)
 
-    json_config["prompt"] = prompt
+    json_config["value"] = prompt
 
     word_replace_config.append(json_config)
 
