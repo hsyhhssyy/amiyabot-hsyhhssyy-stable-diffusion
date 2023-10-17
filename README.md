@@ -112,6 +112,14 @@ ADetailer
 
 SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何使用AGPL协议的网络服务的代码也需要开源。因此，本项目同样遵循AGPL版权。
 
+## TODO
+
+- 用Hash而不是完全名称来确认模型和VAE
+- 完善文档
+- 为水彩画风格选择正确的内容
+- 提供3.5硬编码的干员列表
+- 让ChatGPT成为可选
+
 ## 备注
 
 * 插件图标是使用StableDiffusion生成的。

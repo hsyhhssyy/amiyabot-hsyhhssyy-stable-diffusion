@@ -79,7 +79,11 @@ async def word_replace(plugin,original_prompt:str):
             op_name_with_suffix = op.name + "干员"
 
 
-        candidates_for_chatgpt[op_name_with_suffix]=operator
+        candidates_for_chatgpt[op_name_with_suffix] = {
+            "operator": operator,
+            "original_name": op.name
+        }
+
 
     char_json = await identify_character(plugin, candidates_for_chatgpt.keys(), original_prompt)
 
@@ -87,7 +91,17 @@ async def word_replace(plugin,original_prompt:str):
         plugin.debug_log(f"未匹配到任何干员")
         return not_operator_candidate + []
     
-    operator_candidate_final = [candidates_for_chatgpt[char_name] for char_name in char_json]
+    operator_candidate_final = []
+    for char_name in char_json:
+        # Check if the name directly exists in candidates_for_chatgpt (with suffix)
+        if char_name in candidates_for_chatgpt:
+            operator_candidate_final.append(candidates_for_chatgpt[char_name]["operator"])
+        else:
+            # Check if the name without suffix exists in the operators list
+            for op_data in candidates_for_chatgpt.values():
+                if char_name == op_data["original_name"]:
+                    operator_candidate_final.append(op_data["operator"])
+                    break
 
     plugin.debug_log(f"匹配到干员: {char_json} , {operator_candidate_final}")
 
