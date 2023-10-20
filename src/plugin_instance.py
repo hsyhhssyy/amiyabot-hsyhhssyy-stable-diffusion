@@ -64,25 +64,69 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         if "models" in self.cache:
             new_values += self.cache["models"]
             self.debug_log(f"models : {new_values}")
-        try:                        
-            data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values
-            data["properties"]["model_selector"]["items"]["properties"]["model"]["enum"] = new_values
-        except KeyError as e:
-            stack_trace = traceback.format_exc()
-            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+            try:                        
+                data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values
+                data["properties"]["model_selector"]["items"]["properties"]["model"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
         
         new_values = ["..."]
         
         if "vae" in self.cache:
             new_values += self.cache["vae"]
             self.debug_log(f"vae : {new_values}")
-        try:                        
-            data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
-            data["properties"]["model_selector"]["items"]["properties"]["vae"]["enum"] = new_values
-        except KeyError as e:
-            stack_trace = traceback.format_exc()
-            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+            try:                        
+                data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
+                data["properties"]["model_selector"]["items"]["properties"]["vae"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
 
+        new_values = ["不使用"]
+
+        if "canny_modules" in self.cache:
+            new_values += self.cache["canny_modules"]
+            self.debug_log(f"canny_modules : {new_values}")
+            try:                        
+                data["properties"]["control_net"]["properties"]["canny"]["properties"]["module"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
+        new_values = ["..."]
+
+        if "canny_models" in self.cache:
+            new_values += self.cache["canny_models"]
+            self.debug_log(f"canny_model : {new_values}")
+            try:                        
+                data["properties"]["control_net"]["properties"]["canny"]["properties"]["model"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
+        new_values = ["不使用"]
+
+        if "ip_adapter_modules" in self.cache:
+            new_values += self.cache["ip_adapter_modules"]
+            self.debug_log(f"ip_adapter_modules : {new_values}")
+            try:                        
+                data["properties"]["control_net"]["properties"]["ip_adapter"]["properties"]["module"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
+        new_values = ["..."]
+
+        if "ip_adapter_models" in self.cache:
+            new_values += self.cache["ip_adapter_models"]
+            self.debug_log(f"ip_adapter_model : {new_values}")
+            try:                        
+                data["properties"]["control_net"]["properties"]["ip_adapter"]["properties"]["model"]["enum"] = new_values
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+        
         return data
 
     def __start_periodic_task(self, task, interval):
@@ -130,21 +174,58 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         if self.webui_api == None:
             return
 
-        try:
-            self.__cached_docs = docs
+        self.__cached_docs = docs
 
+        def get_value_from_key(obj, primary_key, secondary_key):
+            return obj.get(primary_key, {}).get(secondary_key, None)
+
+        try:
             models = self.webui_api.get_sd_models()
+
+            self.debug_log(f'get_sd_models:{models}')
+
             # 将查询结果存储到缓存中
             self.cache["models"] = [model["title"] for model in models]
         except Exception as e:
             self.debug_log(f"Error accessing API: {e}")
         
         try:
-            self.__cached_docs = docs
-
             models = self.webui_api.get_sd_vae()
+
+            self.debug_log(f'get_sd_vae:{models}')
+
             # 将查询结果存储到缓存中
             self.cache["vae"] = [model["model_name"] for model in models]
+        except Exception as e:
+            self.debug_log(f"Error accessing API: {e}")
+
+        
+        try:
+            models = self.webui_api.controlnet_control_types()
+            
+            self.debug_log(f'controlnet_control_types:{models}')
+
+            canny_modules = get_value_from_key(models, "Canny", "module_list") or []
+            canny_models = get_value_from_key(models, "Canny", "model_list") or []
+
+            ip_adapter_modules = get_value_from_key(models, "IP-Adapter", "module_list") or []
+            ip_adapter_models = get_value_from_key(models, "IP-Adapter", "model_list") or []
+            
+            # 移除四个集合里的字符串"none"和"None"
+            canny_modules = list(filter(lambda x: x.lower() != "none", canny_modules))
+            canny_models = list(filter(lambda x: x.lower() != "none", canny_models))
+
+            ip_adapter_modules = list(filter(lambda x: x.lower() != "none", ip_adapter_modules))
+            ip_adapter_models = list(filter(lambda x: x.lower() != "none", ip_adapter_models))
+
+            # 将查询结果存储到缓存中
+            self.cache["canny_modules"] = canny_modules
+            self.cache["canny_models"] = canny_models
+            self.cache["ip_adapter_modules"] = ip_adapter_modules
+            self.cache["ip_adapter_models"] = ip_adapter_models
+            
+            self.debug_log(f'canny_modules:{canny_modules},canny_models:{canny_models},ip_adapter_modules:{ip_adapter_modules},ip_adapter_models:{ip_adapter_models}')
+
         except Exception as e:
             self.debug_log(f"Error accessing API: {e}")
 

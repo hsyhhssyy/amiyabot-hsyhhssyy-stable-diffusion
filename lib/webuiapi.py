@@ -721,6 +721,10 @@ class WebUIApi:
         r = self.custom_get("controlnet/version")
         return r["version"]
 
+    def controlnet_control_types(self):
+        r = self.custom_get("controlnet/control_types")
+        return r["control_types"]
+    
     def controlnet_model_list(self):
         r = self.custom_get("controlnet/model_list")
         return r["model_list"]

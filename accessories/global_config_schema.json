@@ -113,6 +113,16 @@
       "description": "如果SD服务无法连接，兔兔会回复的话。",
       "type": "string"
     },
+    "gpt_model": {
+      "title": "GPT模型",
+      "description": "Model/Checkpoint",
+      "type": "string",
+      "enum": [
+        "不使用(非常不推荐)",
+        "gpt-3.5-turbo",
+        "gpt-3.5/4-mixed"
+      ]
+    },
     "show_log": {
       "title": "调试日志",
       "description": "开启后将写入用于调试的大量日志。",
@@ -139,6 +149,59 @@
       "title": "保存生成结果",
       "description": "开启后将写入用于调试的大量日志。",
       "type": "boolean"
+    },
+    "control_net": {
+      "title": "ControlNet",
+      "description": "开启后将写入用于调试的大量日志。",
+      "type": "object",
+      "properties": {
+        "canny": {
+          "title": "Canny(-ca)",
+          "description": "开启后将写入用于调试的大量日志。",
+          "type": "object",
+          "properties": {        
+            "module": {
+              "title": "预处理器",
+              "description": "开启后将写入用于调试的大量日志。",
+              "type": "string",
+              "enum": [
+                "不使用"
+              ]
+            },
+            "model": {
+              "title": "模型",
+              "description": "开启后将写入用于调试的大量日志。",
+              "type": "string",
+              "enum": [
+                "..."
+              ]
+            }
+          }
+        },
+        "ip_adapter": {
+          "title": "IP-Adapter(-ia)",
+          "description": "开启后将写入用于调试的大量日志。",
+          "type": "object",
+          "properties": {        
+            "module": {
+              "title": "预处理器",
+              "description": "开启后将写入用于调试的大量日志。",
+              "type": "string",
+              "enum": [
+                "不使用"
+              ]
+            },
+            "model": {
+              "title": "模型",
+              "description": "开启后将写入用于调试的大量日志。",
+              "type": "string",
+              "enum": [
+                "..."
+              ]
+            }
+          }
+        }
+      }
     },
     "word_replace": {
       "title": "词语替换",

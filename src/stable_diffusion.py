@@ -12,16 +12,16 @@ from io import BytesIO
 from amiyabot.network.download import download_sync
 from amiyabot import Message, Chain
 
-from core.resource.arknightsGameData import ArknightsGameData
 
 from .plugin_instance import StableDiffusionPluginInstance,ALWAYS_ON_SCRIPTS_PATH
 
+from ..lib.webuiapi import ControlNetUnit
 from ..lib.command_line_utils import parse_command
-from ..lib.mathmatic import compute_dimensions
+from ..lib.mathmatic import compute_dimensions,compute_dimensions_from_value
 from ..lib.pil_utils import combine_images
-from ..lib.download_lora import WORD_REPLACE_CONFIG_PATH
 
-from ..src.chatgpt_presets import identify_character, generate_danbooru_tags
+
+from ..src.chatgpt_presets import generate_danbooru_tags, select_model, word_replace
 
 curr_dir = os.path.dirname(__file__)
 
@@ -30,99 +30,6 @@ OUTPUT_SAVE_PATH = f"{curr_dir}/../../../resource/stable-diffusion/output"
 if not os.path.exists(OUTPUT_SAVE_PATH):
     os.makedirs(OUTPUT_SAVE_PATH)
 
-async def word_replace(plugin,original_prompt:str):
-    
-    replace_source = plugin.get_config("word_replace")
-    
-    with open(WORD_REPLACE_CONFIG_PATH, 'r') as file:
-        word_replace_config = json.load(file)
-    
-    if word_replace_config:
-        replace_source += word_replace_config
-    
-    candidates = []
-
-    for item in replace_source:
-        splited_item_name = item["name"].split(",")
-
-        for name in splited_item_name:
-            name = name.strip()
-
-            if name in original_prompt:
-                candidates.append(item)
-                break
-    
-    # 通过字符串匹配,找到预筛的干员列表
-    not_operator_candidate = [candidate for candidate in candidates if not candidate.get("operator")]
-
-    # 对于来自WORD_REPLACE_CONFIG_PATH的干员,需要通过ChatGPT识别角色
-    operator_candidate = [candidate for candidate in candidates if candidate.get("operator")]
-    
-    candidates_for_chatgpt = {}
-
-    id_to_operator = {op.id: op for op in ArknightsGameData.operators.values()}
-
-    for operator in operator_candidate:
-        op_id = operator["operator"]
-        op = id_to_operator.get(op_id, None) 
-
-        if not op:
-            plugin.debug_log(f"找不到干员: {op_id}")
-            continue
-
-        # 根据 op.sex是男还是女,为op.name添加后缀先生或者小姐
-        if op.sex == "男":  # Assuming the value for male is '男'
-            op_name_with_suffix = op.name + "先生"
-        elif op.sex == "女":  # Assuming the value for female is '女'
-            op_name_with_suffix = op.name + "小姐"
-        else:
-            op_name_with_suffix = op.name + "干员"
-
-
-        candidates_for_chatgpt[op_name_with_suffix] = {
-            "operator": operator,
-            "original_name": op.name
-        }
-
-
-    char_json = await identify_character(plugin, candidates_for_chatgpt.keys(), original_prompt)
-
-    if not char_json or char_json == {}:
-        plugin.debug_log(f"未匹配到任何干员")
-        return not_operator_candidate + []
-    
-    operator_candidate_final = []
-    for char_name in char_json:
-        # Check if the name directly exists in candidates_for_chatgpt (with suffix)
-        if char_name in candidates_for_chatgpt:
-            operator_candidate_final.append(candidates_for_chatgpt[char_name]["operator"])
-        else:
-            # Check if the name without suffix exists in the operators list
-            for op_data in candidates_for_chatgpt.values():
-                if char_name == op_data["original_name"]:
-                    operator_candidate_final.append(op_data["operator"])
-                    break
-
-    plugin.debug_log(f"匹配到干员: {char_json} , {operator_candidate_final}")
-
-    return not_operator_candidate + operator_candidate_final
-
-def select_model(plugin,model_name):
-    model_selector = plugin.get_config("model_selector")
-    selected_models=[]
-    if model_selector:
-        for model in model_selector:
-            if model["style"].lower() == model_name.lower():
-                selected_models.append(model)
-    
-    if len(selected_models) == 0:
-        default_model = plugin.get_config("default_model")
-        if default_model:
-            return default_model
-        return None
-
-    # 随机选择一个
-    return random.choice(selected_models)
 
 
 async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, user_prompt: str, task: str):
@@ -131,37 +38,74 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
     user_prompt, param_dict = parse_command(user_prompt.strip())
 
-    ar_param = param_dict.get('ar')
+    width, height = compute_dimensions(param_dict,plugin.get_config("standard_resolution"))
 
-    width, height = compute_dimensions(ar_param,plugin.get_config("standard_resolution"))
-
-    if param_dict.get('hr') == True:
-        # 修改长宽，使得保持纵横比的情况下总像素面积提升一倍
-        scale_factor = math.sqrt(2)
-        width = int(width * scale_factor)
-        height = int(height * scale_factor)
-    
-    if param_dict.get('lr') == True:
-        # 修改长宽，使得保持纵横比的情况下总像素面积缩小一半
-        scale_factor = math.sqrt(0.5)
-        width = int(width * scale_factor)
-        height = int(height * scale_factor)
-
-    images_in_prompt = None
+    images_in_prompt = []
     if data.image:
         for imgPath in data.image:
             imgBytes = download_sync(imgPath)
             pilImage = Image.open(BytesIO(imgBytes))
             images_in_prompt.append(pilImage)
 
-    # 对提示词搜索角色
+    # 处理ControlNet Unit
 
+    control_net_conf = plugin.get_config("control_net") or {}
+    
+    ip_adapter_unit = None
+    canny_unit = None
+    
+    plugin.debug_log(f"Image in Prompt: {len(images_in_prompt)}")
+    plugin.debug_log(f"ControlNet Config: {control_net_conf}")
+
+    if len(images_in_prompt) >0:
+        if "ip_adapter" in control_net_conf:
+            ip_adapter_module = control_net_conf["ip_adapter"]["module"]
+            ip_adapter_model = control_net_conf["ip_adapter"]["model"]
+
+            if ip_adapter_module != "不使用" and ip_adapter_model != "...":
+
+                ip_adapter_weight = 0.5
+
+                if param_dict.get('ia') is not None:
+                    if param_dict.get('ia') != True:
+                        ip_adapter_weight = float(param_dict.get('ia'))
+
+                # 哪张图都是第一张
+                ip_adapter_image = images_in_prompt[0]
+
+                plugin.debug_log(f"ControlNet:使用IP Adapter模块，权重{ip_adapter_weight},图片尺寸{width}x{height},模块{ip_adapter_module},模型{ip_adapter_model}")
+
+                # ip_adapter下的weight实际控制的是ip_adapter的Ending Control Step
+                ip_adapter_unit = ControlNetUnit(input_image=ip_adapter_image, module=ip_adapter_module, model=ip_adapter_model,guidance_start=1- ip_adapter_weight,guidance_end=1)
+        
+        if "canny" in control_net_conf:
+            canny_module = control_net_conf["canny"]["module"]
+            canny_model = control_net_conf["canny"]["model"]
+
+            if canny_module != "不使用" and canny_model != "...":
+                canny_weight = 0.5
+                
+                if param_dict.get('ca') is not None:
+                    if param_dict.get('ca') != True:
+                        canny_weight = float(param_dict.get('ca'))
+                
+                # 如果两张图则是第二张
+                if len(images_in_prompt) >= 2:
+                    canny_image = images_in_prompt[1]
+                else:
+                    canny_image = images_in_prompt[0]
+                
+                plugin.debug_log(f"ControlNet:使用Canny模块，权重{canny_weight},模块{canny_module},模型{canny_model}")
+                # canny下的weight实际控制的是canny的Ending Control Step
+                canny_unit = ControlNetUnit(input_image=canny_image, module=canny_module, model=canny_model,guidance_start = 0 ,guidance_end=canny_weight)
+
+    # 对提示词搜索角色
     character_candidate = await word_replace(plugin, user_prompt)
 
+    # 生成tag
     danbooru_tags = await generate_danbooru_tags(plugin, user_prompt)
 
-    # 读取
-
+    # 开始绘图
     if len(danbooru_tags) > 0:
         drawing_params = []
 
@@ -196,6 +140,36 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
             seed = random.randint(0, 2147483647)
 
+            control_net_units = []
+
+            if len(images_in_prompt) >0:
+                image_for_resolution = images_in_prompt[:2][-1]
+                width, height = compute_dimensions_from_value(image_for_resolution.width,image_for_resolution.height, param_dict,plugin.get_config("standard_resolution"))
+                plugin.debug_log(f"ControlNet:使用图片尺寸{width}x{height}")
+
+            if len(images_in_prompt) >= 2:
+                if ip_adapter_unit is not None:
+                    plugin.debug_log(f"ControlNet:使用IP Adapter模块")
+                    control_net_units.append(ip_adapter_unit)
+                if canny_unit is not None:
+                    plugin.debug_log(f"ControlNet:使用Canny模块")
+                    control_net_units.append(canny_unit)
+            elif len(images_in_prompt) == 1:
+                if param_dict.get('ca') is not None and canny_unit is not None:
+                    plugin.debug_log(f"ControlNet:使用Canny模块")
+                    control_net_units.append(canny_unit)
+                elif param_dict.get('ia') is not None and ip_adapter_unit is not None:
+                    plugin.debug_log(f"ControlNet:使用IP Adapter模块")
+                    control_net_units.append(ip_adapter_unit)
+                else:
+                    # 从两个unit里随机选一个
+                    if random.randint(0, 1) == 0 and ip_adapter_unit is not None:
+                        plugin.debug_log(f"ControlNet:随机使用IP Adapter模块")
+                        control_net_units.append(ip_adapter_unit)
+                    elif canny_unit is not None:
+                        plugin.debug_log(f"ControlNet:随机使用Canny模块")
+                        control_net_units.append(canny_unit)
+
             # # fixed param for testing
             # seed = 114514
             # negative_prompt = ""
@@ -206,6 +180,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "sd_model": sd_model,
                 "images": images_in_prompt,
                 "task":task,
+                "control_net_units": control_net_units,
                 # below are params for webui_api.set_options
                 "options": options,
                 # below are params for webui_api.txt2img
@@ -258,15 +233,23 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "width",
                 "height",
                 "alwayson_scripts"]}
-            if task == "TextToImage":
+            if len(images_in_prompt) == 0:
                 selected_params = {**selected_params,
                                    **{
                                        
                                    }}
                 result = plugin.webui_api.txt2img(**selected_params)
             else:
-                result = plugin.webui_api.img2img(
-                    images=[drawing_param["images"][0]], **selected_params)
+                control_net_units = drawing_param["control_net_units"]
+                if control_net_units:
+                    selected_params = {**selected_params,
+                                    **{
+                                        "controlnet_units":control_net_units
+                                    }}
+                    result = plugin.webui_api.txt2img(**selected_params)
+                else:
+                    result = plugin.webui_api.img2img(
+                        images=[drawing_param["images"][0]], **selected_params)
 
             images_output.append(result.image)
 
@@ -296,6 +279,6 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
             await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
     else:
         plugin.debug_log(f"ChatGPT Response not success")
-        await data.send(Chain(data, at=False).text(f'真抱歉，兔兔画图失败了，请再试一次吧。'))
+        await data.send(Chain(data, at=False).text(f'真抱歉，您的提示词似乎出了点问题，请再试一次吧。'))
 
     plugin.debug_log(f"退出兔兔绘图功能")

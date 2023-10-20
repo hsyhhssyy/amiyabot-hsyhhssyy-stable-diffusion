@@ -156,7 +156,7 @@
         },        
         {
             "style":"Watercolor",
-            "model":"ghostmix_v20Bakedvae.safetensors [e3edb8a26f]",
+            "model":"abyssorangemix3AOM3_aom3a1b.safetensors [5493a0ec49]",
             "prompts":"(((masterpiece))), (((best quality))), realistic, edgQuality, <lora:akagi_shun_offset:1>, akagi shun, watercolor",
             "sampler":"DPM++ 2M Karras",
             "vae":"..."
@@ -174,10 +174,21 @@
     "output_grid_first":true,
     "save_result":true,
     "batch_count":4,
+    "gpt_model":"gpt-3.5-turbo",
     "standard_resolution":"512:512",
     "lora_resource_dir":"",
     "positive_prompts":"<lyco:GoodHands-beta2_Locon:1.0>, nice hands, perfect hands,",
     "negative_prompts":"nsfw, EasyNegative,ng_deepnegative_v1_75t,verybadimagenegative_v1.3",
     "no_service_prompt":"兔兔现在无法为您提供绘图服务，兔兔绘图服务只在每天早9点到晚5点开放，您可以在这个时间段内再次尝试。",
-    "show_log":false
+    "show_log":false,
+    "control_net":{
+        "canny":{
+            "module":"不使用",
+            "model":"..."
+        },
+        "ip_adapter":{
+            "module":"不使用",
+            "model":"..."
+        }
+    }
 }

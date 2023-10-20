@@ -10,7 +10,7 @@ def combine_images(images):
 
     # 计算基于长宽比的修正图片数量
     adjusted_n = len(images) * aspect_ratio
-    rows = math.ceil(math.sqrt(adjusted_n))
+    rows = int(math.sqrt(adjusted_n))
     cols = math.ceil(len(images) / rows)
 
     # 创建一个新的空白图像
