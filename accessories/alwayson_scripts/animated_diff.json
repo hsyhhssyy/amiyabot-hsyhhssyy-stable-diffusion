@@ -1,0 +1,21 @@
+{
+    "AnimateDiff":{
+        "args": [                            
+            {
+                "model": "",
+                "format": ["GIF"],
+                "enable": true,
+                "video_length": 16,
+                "fps": 8,
+                "loop_number": 0,
+                "closed_loop": "R+P",
+                "batch_size": 16,
+                "stride": 1,
+                "overlap": -1,
+                "interp": "Off",
+                "interp_x": 10
+            }
+            
+        ]
+    }
+}

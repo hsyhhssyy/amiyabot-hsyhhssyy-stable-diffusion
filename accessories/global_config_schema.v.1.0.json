@@ -4,12 +4,12 @@
   "properties": {
     "sd_docs_url": {
       "title": "Docs Url",
-      "description": "你的WebUI的FastApi文档路径，通常来说是类似于“http://localhost:7777/docs”的地址，你需要试着访问一下看看是否能使用",
+      "description": "你的WebUI的FastApi文档路径",
       "type": "string"
     },
     "default_model": {
       "title": "默认模型",
-      "description": "anime使用的Model/Checkpoint",
+      "description": "默认使用的Model/Checkpoint",
       "type": "object",
       "properties": {
         "model": {
@@ -49,7 +49,7 @@
         "properties": {
           "style": {
             "title": "style",
-            "description": "Model/Checkpoint",
+            "description": "风格选项",
             "type": "string",
             "enum": [
               "Chibi",
@@ -115,7 +115,7 @@
     },
     "gpt_model": {
       "title": "GPT模型",
-      "description": "Model/Checkpoint",
+      "description": "使用ChatGPT优化提示词",
       "type": "string",
       "enum": [
         "不使用(非常不推荐)",
@@ -125,11 +125,6 @@
     },
     "show_log": {
       "title": "调试日志",
-      "description": "开启后将写入用于调试的大量日志。",
-      "type": "boolean"
-    },
-    "output_grid_first": {
-      "title": "先输出预览图",
       "description": "开启后将写入用于调试的大量日志。",
       "type": "boolean"
     },
@@ -200,33 +195,6 @@
               ]
             }
           }
-        }
-      }
-    },
-    "tile_diffusion": {
-      "title": "允许放大指令",
-      "description": "开启后将允许使用TileDiffusion配合TileVAE放大图片",
-      "type": "boolean"
-    },
-    "animated_diff":{
-      "title": "GIF指令",
-      "description": "开启后将允许使用AnimatedDiff配合AnimatedVAE生成动态图片",
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "title": "启用",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "boolean"
-        },
-        "model": {
-          "title": "模型",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "string"
-        },
-        "lora_list": {
-          "title": "MotionLora",
-          "description": "逗号分隔的多个Motion Lora的名字.",
-          "type": "string"
         }
       }
     },

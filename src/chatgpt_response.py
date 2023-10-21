@@ -8,8 +8,9 @@ import traceback
 
 from amiyabot import Chain
 from .plugin_instance import StableDiffusionPluginInstance
-from .stable_diffusion import simple_img_task
+from .stable_diffusion import simple_img_task,high_res_task
 from ..lib.command_line_utils import parse_command
+from ..lib.bot_core_util import get_quote_id
 
 curr_dir = os.path.dirname(__file__)
 
@@ -100,13 +101,24 @@ async def process_queue():
             if len(get_global_queue()) > 0:
                 global_queue_length_str = f"(全局队列:{len(get_global_queue())})"
             
-            is_img_to_img=""
-            if data.image:
-                is_img_to_img = "（图生图）"
+            quote_id = get_quote_id(data)
+
+            task_prompt =""
+
+            if quote_id!=0:
+                task_prompt = "高清绘制"
+                await data.send(Chain(data, at=False).text(f'兔兔暂不支持读取引用消息中的数据哦。'))
+                continue
+            elif data.image:
+                task_prompt = "（图生图）"
 
             time = count_time(plugin,prompt)
-            await data.send(Chain(data, at=False).text(f'兔兔开始绘制{is_img_to_img}，约需{round(time/2)}-{round(time)}秒，请稍等：{global_queue_length_str}\n{prompt}\n[小提示：{random_hint.strip()}]'))
-            await simple_img_task(plugin, data, prompt,task)
+            await data.send(Chain(data, at=False).text(f'兔兔开始绘制{task_prompt}，约需{round(time/2)}-{round(time)}秒，请稍等：{global_queue_length_str}\n{prompt}\n[小提示：{random_hint.strip()}]'))
+
+            if quote_id==0:            
+                await simple_img_task(plugin, data, prompt,task)
+            else:
+                await high_res_task(plugin, data, quote_id)
         except Exception as e:
             stack_trace = traceback.format_exc()
             plugin.debug_log(f"兔兔绘图任务出现异常：{e}\n{stack_trace}")

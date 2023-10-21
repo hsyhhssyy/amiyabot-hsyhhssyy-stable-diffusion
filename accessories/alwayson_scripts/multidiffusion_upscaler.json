@@ -1,0 +1,33 @@
+{
+    "Tiled Diffusion": {
+        "args": [
+            {
+                "enabled": true,
+                "method": "someMethod",
+                "overwrite_size": true,
+                "keep_input_size": true,
+                "image_width": 100,
+                "image_height": 100,
+                "tile_width": 50,
+                "tile_height": 50,
+                "overlap": 5,
+                "tile_batch_size": 10,
+                "upscaler_name": "someUpscaler",
+                "scale_factor": 1.5,
+                "noise_inverse": true,
+                "noise_inverse_steps": 10,
+                "noise_inverse_retouch": 0.5,
+                "noise_inverse_renoise_strength": 0.5,
+                "noise_inverse_renoise_kernel": 3,
+                "control_tensor_cpu": true,
+                "enable_bbox_control": true,
+                "draw_background": true,
+                "causal_layers": true,
+                "bbox_control_states": [
+                    "state1",
+                    "state2"
+                ]
+            }
+        ]
+    }
+}

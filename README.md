@@ -2,7 +2,7 @@
 
 提供一个StableDiffusion WebUI的兔兔接口。
 
-> 💡 **提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程。
+> 💡 **提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程: https://www.bilibili.com/video/BV1iM4y1y7oA。
 
 **有一些必要WebUI的插件需要安装，他们都列在最下面的必要插件章节中**
 
@@ -10,14 +10,30 @@
 
 **<span style="color:red;">在开始之前，请一定要先从头到尾读完本说明。</span>**
 
+**<span style="color:red;">如果你还不会使用StableDiffusion WebUI进行AI绘图，以及无法正常运行下文提到的某些WebUI插件和功能，我不会负责教学和讲解。当你提出一个Issue时，只有当你可以在StableDiffusionWebUI正常使用我提到的插件，但是兔兔却报错时，我才会受理这个Issue。</span>**
+
 ## 绘图命令
 
 每个群内用户，可以使用`兔兔绘图：琴柳穿着jk在海边漫步`这样的关键词来进行绘画，兔兔会稍后在群内回复画好的图片，效果如下：
 
 ![Alt text](images/image-1.png)
 ![Alt text](images/image-3.png)
+![Alt text](<images/)@8LU4KD0FMQVPCXA(9T(ZI.png>)
+![Alt text](images/7KQBVL69%7BZLAGFSPUN055I9.png)
 
 命令必须以`兔兔绘图：`开头，注意兔兔不可以换成任意其他唤醒词。此外，还可以在消息的结尾使用 -ar 16:9 -hr -lr 来指定分辨率和输出高分辨率，低分辨率图形。
+
+## 图生图
+
+可以通过在消息中包含一张或者两张图片的形式来进行图生图绘制。
+
+![Alt text](<images/S6JM_0$AA6B1HYDIU}(W2_7.png>)
+
+可以使用 -ca 或者 -ia 命令来让兔兔以这张图为构图姿势还是人物画风
+如果你指定了-ia来要求参考人物画风，最好不要再提供干员的名字。
+
+该功能可以通过配置文件来开启，但是开启时，要求你拥有IP-Adapter和Canny两个ControlNet的ControlType，否则会报错。
+你需要先试着用一下IP-Adapter和Canny两个模式，保证他们可以正常工作后，再开启该配置。
 
 ## 安装要求
 
@@ -105,9 +121,13 @@
 
 ## 必要插件
 
-ADetailer，为了保证出图质量，指令默认用ADetailer进行了后处理，不安装ADetailer会报错。
+ADetailer，为了保证出图质量（主要是修脸和修手），指令默认用ADetailer进行了后处理，不安装ADetailer会报错。
 
-`ADetailer的下载地址是（需要补充文档）`
+`ADetailer的下载地址是（https://github.com/Bing-su/adetailer）`
+
+## GIF
+
+* 注意: AnimatedDiff插件Hack了很多其他插件，并在执行完毕后Hack回来，失败报错后会导致需要重启SD，因此可能会导致服务中断。
 
 ## 开箱即用
 
@@ -141,6 +161,7 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 
 ## TODO
 
+- 完善插件配置项，插件的各个配置项写的都非常简略，如果你愿意帮我修改配置项的说明，那我非常欢迎您提出PR。
 - 完善文档，这篇文档写的非常简略，对于没有StableDiffusion经验的人来说可能会比较困难，同时还缺少一些步骤的截图和Civitai的链接地址。如果您有兴趣帮忙修改文档，您可以直接在Github想我提出PR。
 
 ## 备注
@@ -159,11 +180,21 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 
 ## 下面就是兔兔画廊时间了
 
+** 下面的内容都是由兔兔绘图生成的 **
+![Alt text](images/image-6.png)
+![Alt text](images/image-4.png)
+![Alt text](images/image-7.png)
+![Alt text](images/image-5.png)
+![Alt text](images/image-8.png)
+![Alt text](images/image-9.png)
+![Alt text](images/image-10.png)
+![Alt text](images/image-11.png)
+![Alt text](images/image-12.png)
+![Alt text](images/image-13.png)
+![Alt text](images/image-14.png)
+![Alt text](images/image-15.png)
+
 ## TODO List
 
-兔兔在出图的同时给出prompt
 
-兔兔对四张图的其中一张做hi-res
-
-兔兔用ip adapter图生图和混合图生图
 

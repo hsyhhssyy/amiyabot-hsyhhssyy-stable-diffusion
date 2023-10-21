@@ -13,13 +13,13 @@ from amiyabot.network.download import download_sync
 from amiyabot import Message, Chain
 
 
-from .plugin_instance import StableDiffusionPluginInstance,ALWAYS_ON_SCRIPTS_PATH
+from .plugin_instance import StableDiffusionPluginInstance,ADETAILER_SCRIPTS_PATH,ANIMATED_DIFF_SCRIPTS_PATH
 
 from ..lib.webuiapi import ControlNetUnit
 from ..lib.command_line_utils import parse_command
 from ..lib.mathmatic import compute_dimensions,compute_dimensions_from_value
 from ..lib.pil_utils import combine_images
-
+from ..lib.bot_core_util import get_response_id
 
 from ..src.chatgpt_presets import generate_danbooru_tags, select_model, word_replace
 
@@ -30,13 +30,18 @@ OUTPUT_SAVE_PATH = f"{curr_dir}/../../../resource/stable-diffusion/output"
 if not os.path.exists(OUTPUT_SAVE_PATH):
     os.makedirs(OUTPUT_SAVE_PATH)
 
-
+genrated_images = {}
 
 async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, user_prompt: str, task: str):
 
     plugin.debug_log(f"绘图 完整流程")
 
     user_prompt, param_dict = parse_command(user_prompt.strip())
+
+    animated_diff_conf = plugin.get_config("animated_diff") or {}
+
+    if animated_diff_conf.get("enabled") != True:
+        param_dict['gif'] = None
 
     width, height = compute_dimensions(param_dict,plugin.get_config("standard_resolution"))
 
@@ -193,14 +198,14 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "sampler_index": sampler_index,
                 "width": width,
                 "height": height,
-                "alwayson_scripts": json.load(open(ALWAYS_ON_SCRIPTS_PATH, 'r', encoding='utf-8'))
+                "alwayson_scripts": {}
             }
 
+            if ADETAILER_SCRIPTS_PATH:
+                adetailer_conf = json.load(open(ADETAILER_SCRIPTS_PATH, 'r', encoding='utf-8'))
+                drawing_param["alwayson_scripts"]["ADetailer"]=adetailer_conf["ADetailer"]
+
             drawing_params.append(drawing_param)
-
-        use_grid = plugin.get_config("output_grid_first")
-
-        plugin.debug_log(f"启用Grid")
 
         grid_start_time = datetime.datetime.now()
 
@@ -219,7 +224,6 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
             plugin.debug_log(f"负面提示: {drawing_param['negative_prompt']}")
 
             answer_item_count += 1
-            start_time = datetime.datetime.now()
 
             plugin.webui_api.set_options(drawing_param["options"])
             selected_params = {k: drawing_param[k] for k in [
@@ -233,12 +237,31 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "width",
                 "height",
                 "alwayson_scripts"]}
+            
+            
+            plugin.debug_log(f"使用Scripts: {selected_params['alwayson_scripts']}")
+
+
             if len(images_in_prompt) == 0:
-                selected_params = {**selected_params,
-                                   **{
-                                       
-                                   }}
-                result = plugin.webui_api.txt2img(**selected_params)
+                if param_dict.get('gif') is not None:
+                    if ANIMATED_DIFF_SCRIPTS_PATH:
+                        animated_diff_json = json.load(open(ANIMATED_DIFF_SCRIPTS_PATH, 'r', encoding='utf-8'))
+                        selected_params["alwayson_scripts"]["AnimateDiff"]=animated_diff_json["AnimateDiff"]
+                    
+                        selected_params["alwayson_scripts"]["AnimateDiff"]["args"][0]["model"] = animated_diff_conf.get("model","animatediffMotion_v15V2.ckpt")
+                    
+                        animated_diff_lora_list = animated_diff_conf.get("lora_list","").split(",")
+                        random_lora = random.choice(animated_diff_lora_list)
+                        selected_params["prompt"] = selected_params["prompt"] + ", " + random_lora
+
+                        plugin.debug_log(f"AnimatedDiff 使用Scripts: {selected_params['alwayson_scripts']}")
+
+                        result = plugin.webui_api.txt2img(**selected_params)
+                    else:
+                        await data.send(Chain(data, at=False).text(f'真抱歉，该功能管理员未能正确配置。'))
+                        return
+                else:
+                    result = plugin.webui_api.txt2img(**selected_params)
             else:
                 control_net_units = drawing_param["control_net_units"]
                 if control_net_units:
@@ -253,32 +276,66 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
             images_output.append(result.image)
 
-            total_second = round(
-                (datetime.datetime.now() - start_time).total_seconds(), 2)
-
             plugin.debug_log(f"绘制完成: {result.info}")
+
             if plugin.get_config("save_result"):
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_ext = param_dict.get('gif') and "gif" or "png"
                 result.image.save(
-                    f'{OUTPUT_SAVE_PATH}/StableDiffusionPlugin.v{plugin.version}.{timestamp}.png')
+                    f'{OUTPUT_SAVE_PATH}/StableDiffusionPlugin.v{plugin.version}.{timestamp}.{file_ext}')
 
-            if not use_grid:
-                buffer = BytesIO()
-                result.image.save(buffer, format="PNG")
-                img_bytes = buffer.getvalue()
-                await data.send(Chain(data, at=False).text(f'绘图结果({answer_item_count}/{len(drawing_params)})，用时{total_second}秒:').image(img_bytes))
+            if param_dict.get('gif'):
+                # gif 模式下只允许一张图片
+                break        
+
 
         grid_total_second = round(
             (datetime.datetime.now() - grid_start_time).total_seconds(), 2)
 
-        if len(images_output) > 1 and use_grid:
+        if len(images_output) > 1:
             new_img = combine_images(images_output)
             buffer = BytesIO()
-            new_img.save(buffer, format="PNG")
+            file_ext = param_dict.get('GIF') and "GIF" or "PNG"
+            new_img.save(buffer, format=file_ext)
             img_bytes = buffer.getvalue()
-            await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
+            draw_result_msg = await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
+            id = get_response_id(draw_result_msg)
+            plugin.debug_log(f"发出消息，Id: {id}")
+            genrated_images[id] = drawing_params
     else:
         plugin.debug_log(f"ChatGPT Response not success")
         await data.send(Chain(data, at=False).text(f'真抱歉，您的提示词似乎出了点问题，请再试一次吧。'))
 
     plugin.debug_log(f"退出兔兔绘图功能")
+
+
+async def high_res_task(plugin: StableDiffusionPluginInstance,data:Message,quote_id:str):
+    original_params = genrated_images.get(quote_id,None)
+    if not original_params:
+        await data.send(Chain(data, at=False).text(f'真抱歉，您引用的不是兔兔的绘图结果，请再试一次吧。'))
+        return
+    
+    selected_param = original_params[0]
+    file_name = selected_param["file_name"]
+    image = Image.open(file_name)
+    width = image.width
+    height = image.height
+
+    plugin.debug_log(f"高清绘图 完整流程")
+    selected_params = {k: selected_param[k] for k in [
+                "prompt",
+                "negative_prompt",
+                "seed",
+                "styles",
+                "steps",
+                "cfg_scale",
+                "sampler_index",
+                "width",
+                "height",
+                "alwayson_scripts"]}
+    result = plugin.webui_api.img2img(
+                        images=[selected_param["images"][0]], **selected_params)
+    buffer = BytesIO()
+    result.image.save(buffer, format="PNG")
+    img_bytes = buffer.getvalue()
+    draw_result_msg = await data.send(Chain(data, at=False).text(f'绘图结果:').image(img_bytes))
