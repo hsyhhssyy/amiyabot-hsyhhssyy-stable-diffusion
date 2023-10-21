@@ -56,7 +56,7 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
 
     def generate_schema(self):
 
-        filepath = f'{curr_dir}/../accessories/global_config_schema.json'
+        filepath = f'{curr_dir}/../accessories/global_config_schema.v.1.0.json'
 
         try:
             with open(filepath, 'r') as file:
