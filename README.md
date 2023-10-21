@@ -114,6 +114,7 @@
 
 等他下载完，你需要将lora和embeddings分别拷贝到SD的对应目录或子目录。
 兔兔在做这件事时，会同时保存lora的文件名和提示词，因此你不可以对lora或者embeddings改名。
+你可以在models\Lora\下建立一个子文件夹来放置这些lora,embeddings同理。新版WebUI是支持子文件夹的。
 
 然后，当兔兔检测到用户绘图指令提到了方舟的干员，他会自动拼接Lora和Embeddings进prompt中。
 
@@ -125,9 +126,17 @@ ADetailer，为了保证出图质量（主要是修脸和修手），指令默�
 
 `ADetailer的下载地址是（https://github.com/Bing-su/adetailer）`
 
-## GIF
+ControlNet, 各种一键包都会自带，如果你没有，那你需要去手动安装。
 
-* 注意: AnimatedDiff插件Hack了很多其他插件，并在执行完毕后Hack回来，失败报错后会导致需要重启SD，因此可能会导致服务中断。
+IP-Adapter，用于根据图片生成角色数据和画风的插件，目前网络上并没有比较好的傻瓜式教程，你可能需要自行百度如何安装该插件，下载对应的模型以及如何使用。
+
+~~## GIF~~
+
+~~兔兔可以利用AnimatedDiff插件输出GIF。~~
+
+~~* 注意: AnimatedDiff插件Hack了很多其他插件，并在执行完毕后Hack回来，失败报错后会导致需要重启SD，因此可能会导致服务中断。~~
+
+~~* 因为AnimatedDiff目前非常不稳定，为了大家的兔兔着想，本功能暂不开放。~~
 
 ## 开箱即用
 
@@ -151,9 +160,10 @@ ADetailer，为了保证出图质量（主要是修脸和修手），指令默�
    - [沁彩 Colorwater](https://civitai.com/models/16055/colorwater)
    - [【Art Style】ChiChi Style](https://civitai.com/models/22992/art-stylechichi-style)
    - [Akagi Shun Style LoRA](https://civitai.com/models/46813/akagi-shun-style-lora)
+   - [Add More Details - Detail Enhancer / Tweaker (细节调整) LoRA](https://civitai.com/models/82098?modelVersionId=87153)
 
 * 你可以选择将他们都下载下来，这样就可以直接使用我的配置文件。
-* 如果你想自己调教，你也可以自己挑选模型和配置。**<span style="color:red;">但是请检查一遍配置，将使用了你没有的底模的配置项删掉，不然兔兔会报错。</span>**
+* 如果你想自己调教，你也可以自己挑选模型和配置。**<span style="color:red;">但是请检查一遍配置，将使用了你没有的底模或Lora或插件的配置项删掉或关闭，不然兔兔会报错。</span>**
 
 ## 版权声明
 
