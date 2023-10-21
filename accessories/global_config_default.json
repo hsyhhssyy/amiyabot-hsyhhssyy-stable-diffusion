@@ -178,7 +178,6 @@
     ],
     "word_replace": [
     ],
-    "output_grid_first":true,
     "animated_diff":{
         "enabled":true,
         "model":"animatediffMotion_v15V2.ckpt",
