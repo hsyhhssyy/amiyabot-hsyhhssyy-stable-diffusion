@@ -20,7 +20,7 @@ def dynamic_get_global_config_schema_data():
 
 bot = StableDiffusionPluginInstance(
     name='StableDiffusion+ChatGPT',
-    version='0.0.1',
+    version='0.1.0',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
     description='StableDiffusion本地调用插件',

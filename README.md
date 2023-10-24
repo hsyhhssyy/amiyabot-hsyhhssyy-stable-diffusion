@@ -1,8 +1,8 @@
 # Stable Diffusion + ChatGPT
 
-提供一个StableDiffusion WebUI的兔兔接口。
+提供一个调用本地StableDiffusion WebUI的兔兔功能，再结合ChatGPT，实现一个近似MidJourney的效果（大概吧）。
 
-> 💡 **提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程: https://www.bilibili.com/video/BV1iM4y1y7oA。
+**提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程: https://www.bilibili.com/video/BV1iM4y1y7oA。
 
 **有一些必要WebUI的插件需要安装，他们都列在最下面的必要插件章节中**
 
@@ -70,6 +70,12 @@
 ```
 
 此时已经连上了WebUI Api，可以开始后续步骤了。
+
+### 选择ChatGPT模型
+
+不管你是否使用ChatGPT，你都必须要安装ChatGPT插件。
+配置项中有是否开启ChatGPT的说明，注意开启后Api调用时收费的。
+3和3/4Mixed的区别在于会用4去识别用户提到的干员名字，来解决“大哥大嫂过年好，除夕快乐，阿要给大家表演一曲苏格兰风笛。”难题。实际上生成的Prompt区别不大。用3会便宜很多，代价只不过是会画出一些额外的干员。
 
 ### 模型选择
 
