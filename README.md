@@ -37,9 +37,11 @@
 
 ## 安装要求
 
-**<span style="color:red;">1. 兔兔版本大于6.3.9</span>**
-**<span style="color:red;">2. 已经部署且可运行的StableDiffusionWebUI</span>**
-**<span style="color:red;">3. 可以连接Civitai和OpenAI的网络连接</span>**
+1. **<span style="color:red;"> 兔兔版本大于6.3.9</span>**
+
+2. **<span style="color:red;"> 已经部署且可运行的StableDiffusionWebUI</span>**
+
+3. **<span style="color:red;"> 可以连接Civitai和OpenAI的网络连接</span>**
 
 ## 安装与配置
 
@@ -113,10 +115,10 @@
 兔兔就会在‘Lora下载到’配置的那个目录创建两个文件夹：lora和embeddings。如果配置项为空，默认位置是resources\stable-diffusion。然后，兔兔会去civitai上，按照Arknights作为关键词搜索模型,然后自动挑选并下载干员的lora,并放在这两个文件夹下。
 
 等他下载完，你需要将lora和embeddings分别拷贝到SD的对应目录或子目录。
-兔兔在做这件事时，会同时保存lora的文件名和提示词，因此你不可以对lora或者embeddings改名。
+兔兔在做这件事时，会同时保存lora的文件名和提示词，因此你**不可以**对lora或者embeddings改名。
 你可以在models\Lora\下建立一个子文件夹来放置这些lora,embeddings同理。新版WebUI是支持子文件夹的。
 
-然后，当兔兔检测到用户绘图指令提到了方舟的干员，他会自动拼接Lora和Embeddings进prompt中。
+然后，当兔兔检测到用户绘图指令提到了方舟的干员，他会自动拼接Lora和Embeddings进prompt中，从而正确的绘制出方舟干员。
 
 在resources\stable-diffusion\lora-download-log.txt文件中,你可以看到下载的详情日志.
 
@@ -125,6 +127,8 @@
 ADetailer，为了保证出图质量（主要是修脸和修手），指令默认用ADetailer进行了后处理，不安装ADetailer会报错。
 
 `ADetailer的下载地址是（https://github.com/Bing-su/adetailer）`
+
+## 可选插件
 
 ControlNet, 各种一键包都会自带，如果你没有，那你需要去手动安装。
 
@@ -164,10 +168,13 @@ IP-Adapter，用于根据图片生成角色数据和画风的插件，目前网�
 
 * 你可以选择将他们都下载下来，这样就可以直接使用我的配置文件。
 * 如果你想自己调教，你也可以自己挑选模型和配置。**<span style="color:red;">但是请检查一遍配置，将使用了你没有的底模或Lora或插件的配置项删掉或关闭，不然兔兔会报错。</span>**
+* 我自己部署的兔兔，使用了ControlNet，Canny和IPAdapter，但是，我的默认配置中没有给出他们的配置项，因为他们需要比较复杂的安装步骤。你需要自行安装，然后选择一个模型。
 
 ## 版权声明
 
-SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何使用AGPL协议的网络服务的代码也需要开源。因此，本项目同样遵循AGPL版权。
+SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何使用AGPL协议的网络服务的代码也需要开源。因此，本项目同样遵循AGPL版权。任何使用该服务的人或修改该服务的人也必须提供源代码。
+
+注意：AGPL相比于GPL，增加了对通过服务访问的限制，也就是说，你将本项目部署为服务，然后用其他软件去调用它，那么其他软件可能也需要开源。
 
 ## TODO
 
@@ -194,15 +201,14 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-6.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-4.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-7.png)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-5.png)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-8.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-9.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-10.png)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-11.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-12.png)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-13.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-14.png)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-15.png)
+![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/LZ%60BZPCGW$JH%7D%7D5GRPISFDG.png)
+![Alt text](<https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/2H1CT((H2]PL0G(XBD%K7DC_tmb.png>)
+![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/_D6%60UYEN5X%7B%5DINYA9FORQE9_tmb.png)
 
 ## TODO List
 
