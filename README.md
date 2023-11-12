@@ -6,11 +6,19 @@
 
 **有一些必要WebUI的插件需要安装，他们都列在最下面的必要插件章节中**
 
-**<span style="color:green;">要想使用本功能，你必须要 1. 对如何使用StableDiffuion有了解, 能够使用SD进行绘图和修图等操作. 2. 拥有一个ChatGPT的API Key. 3. 网络环境可以访问ChatGPT, Civitai网站. 4. 安装我的另一个ChatGPT插件（可不设置为启用）并配置API Key</span>**
+**<span style="color:green;">要想使用本功能，你必须要：</span>**
+
+1. **<span style="color:green;">对如何使用StableDiffuion有了解, 能够使用SD进行绘图和修图等操作. </span>**
+2. **<span style="color:green;">拥有一个ChatGPT的API Key. </span>**
+3. **<span style="color:green;">网络环境可以访问ChatGPT, Civitai网站. </span>**
+4. **<span style="color:green;">安装我的另一个ChatGPT插件（可不设置为启用）并配置API Key</span>**
+
 
 **<span style="color:red;">在开始之前，请一定要先从头到尾读完本说明。</span>**
 
-**<span style="color:red;">如果你还不会使用StableDiffusion WebUI进行AI绘图，以及无法正常运行下文提到的某些WebUI插件和功能，我不会负责教学和讲解。当你提出一个Issue时，只有当你可以在StableDiffusionWebUI正常使用我提到的插件，但是兔兔却报错时，我才会受理这个Issue。</span>**
+**<span style="color:red;">如果你还不会使用StableDiffusion WebUI进行AI绘图，以及无法正常运行兔兔会涉及到的那些WebUI插件和功能，我不会负责教学和讲解。</span>**
+
+**<span style="color:red;">当你提出一个Issue时，只有当你可以在StableDiffusionWebUI实现该效果，但是兔兔却报错时，我才会受理这个Issue。</span>**
 
 ## 绘图命令
 
@@ -34,6 +42,12 @@
 
 该功能可以通过配置文件来开启，但是开启时，要求你拥有IP-Adapter和Canny两个ControlNet的ControlType，否则会报错。
 你需要先试着用一下IP-Adapter和Canny两个模式，保证他们可以正常工作后，再开启该配置。
+
+## 绘图队列
+
+目前版本下，当兔兔有绘图任务时，会将其他新任务排队，队列总长度为5，每个群不可超过2。
+
+队列这么短是因为不想耽误太长时间，一个任务的运行需要三五分钟，5个任务就已经是半小时以后了。
 
 ## 安装要求
 
@@ -182,6 +196,11 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 
 注意：AGPL相比于GPL，增加了对通过服务访问的限制，也就是说，你将本项目部署为服务，然后用其他软件去调用它，那么其他软件可能也需要开源。
 
+## 法律风险
+
+**尽管我尽了最大努力，包括StableDiffusion和ChatGPT两端均加入了负面提示，兔兔仍然可能会产生色情，暴力，反动，版权侵害等违法行为。**
+**兔兔运营方应当关注兔兔的生成内容并及时处理，出现任何法律责任，本项目概不负责。**
+
 ## TODO
 
 - 完善插件配置项，插件的各个配置项写的都非常简略，如果你愿意帮我修改配置项的说明，那我非常欢迎您提出PR。
@@ -199,7 +218,9 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 
 |  版本   | 变更  |
 |  ----  | ----  |
-| 1.0  | 最初的版本 |
+| 0.1.0  | 最初的版本 |
+| 0.1.1  | 兔兔画廊增加一堆图片 |
+| 0.2.0  | 修复了商店页面不显示文档的bug |
 
 ## 下面就是兔兔画廊时间了
 
@@ -216,9 +237,9 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 ![Alt text](<https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/2H1CT((H2]PL0G(XBD%K7DC_tmb.png>)
 ![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/_D6%60UYEN5X%7B%5DINYA9FORQE9_tmb.png)
 
+
 ## TODO List
 
 暂无
-
 
 

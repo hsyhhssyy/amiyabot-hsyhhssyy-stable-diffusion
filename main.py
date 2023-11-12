@@ -3,6 +3,9 @@ import os
 import threading
 
 from amiyabot import Message, Chain
+
+from core import Requirement
+
 from .src.plugin_instance import StableDiffusionPluginInstance
 from .src.chatgpt_response import ChatGPTResponse,get_channel_queue,get_global_queue
 from .lib.download_lora import download_from_civitai,word_replace_config
@@ -19,12 +22,15 @@ def dynamic_get_global_config_schema_data():
         return f'{curr_dir}/accessories/global_config_default.json'
 
 bot = StableDiffusionPluginInstance(
-    name='StableDiffusion+ChatGPT',
-    version='0.1.0',
+    name='AI画图(StableDiffusion+ChatGPT)',
+    version='0.2.1',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
-    description='StableDiffusion本地调用插件',
+    description='（更新了插件商店不显示文档和预览的Bug）',
     document=f'{curr_dir}/README.md',
+    requirements=[
+        Requirement("amiyabot-blm-library")
+    ],
     global_config_default=f'{curr_dir}/accessories/global_config_default.json',
     global_config_schema = dynamic_get_global_config_schema_data
 )
@@ -121,8 +127,8 @@ async def _(data: Message):
         return
 
     # 如果没有ChatGPT就走最简流程然后返回
-    if bot.chatgpt_plugin is None:
-        bot.debug_log(f"未加载ChatGPT插件，最简流程")
+    if bot.blm_plugin is None:
+        bot.debug_log(f"未加载BLM插件，无法使用")
         return
     
     await ChatGPTResponse(bot,data)

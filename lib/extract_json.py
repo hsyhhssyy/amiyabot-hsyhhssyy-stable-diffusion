@@ -1,40 +1,45 @@
 import json
 from typing import List, Dict, Any, Union
 
-async def ask_chatgpt_with_json(bot, prompt: str, model:str = None) -> List[Dict[str, Any]]:
+from ..src.developer_type import BLMAdapter
 
-        if model == "gpt-4":
-            max_retries = 1
-        else:
-            max_retries = 3
+async def ask_chatgpt_with_json(blm_plugin:BLMAdapter, prompt: str, model_name:str = None) -> List[Dict[str, Any]]:
+
+    model = blm_plugin.get_model(model_name)
+
+    if model["type"]=="high-cost":
+        max_retries = 1
+    else:
+        max_retries = 3
+    
+    retry_count = 0 
+
+    json_objects = []
+
+    try:
+        successful_sent = False
         
-        retry_count = 0 
+        while retry_count < max_retries:
+            response = await blm_plugin.chat_flow(prompt=prompt,
+                                                  model=model["model_name"])
+            if response:
+                json_objects = blm_plugin.extract_json(response)
 
-        json_objects = []
+                successful_sent = True
 
-        try:
-            successful_sent = False
-            
-            while retry_count < max_retries:
-                response = await bot.ask_amiya(prompt=prompt,use_friendly_error=False, model=model)
-                if response:
-                    json_objects = extract_json(response)
+            if successful_sent:
+                break
+            else:
+                retry_count += 1
 
-                    successful_sent = True
+        if not successful_sent:
+            # 如果重试次数用完仍然没有成功，返回错误信息
+            return False, "重试次数用完"
 
-                if successful_sent:
-                    break
-                else:
-                    retry_count += 1
-
-            if not successful_sent:
-                # 如果重试次数用完仍然没有成功，返回错误信息
-                return False, "重试次数用完"
-
-        except Exception as e:
-            return False, f"报告异常{e}"
-        
-        return True,json_objects
+    except Exception as e:
+        return False, f"报告异常{e}"
+    
+    return True,json_objects
 
 
 def extract_json(string: str) -> List[Union[Dict[str, Any], List[Any]]]:

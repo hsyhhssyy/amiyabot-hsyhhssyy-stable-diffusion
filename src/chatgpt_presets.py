@@ -6,26 +6,27 @@ from typing import List,Dict
 
 from core.resource.arknightsGameData import ArknightsGameData
 
+from .plugin_instance import StableDiffusionPluginInstance
 from ..lib.download_lora import WORD_REPLACE_CONFIG_PATH
 from ..lib.extract_json import ask_chatgpt_with_json
 
 curr_dir = os.path.dirname(__file__)
 
-async def identify_character(plugin,character_candidate_list:List[Dict[str,str]],user_prompt:str) -> List[str]:
+async def identify_character(plugin:StableDiffusionPluginInstance,character_candidate_list:List[Dict[str,str]],user_prompt:str) -> List[str]:
 
     if len(character_candidate_list) == 0:
         return []
 
     character_candidate = [character.get('name_with_suffix') for character in character_candidate_list]
 
-    gpt_model = plugin.get_config("gpt_model")
-    if gpt_model != 'gpt-3.5-turbo' and gpt_model != 'gpt-3.5/4-mixed':
+    blm_model_name = plugin.get_config("blm_model")
+    blm_model = plugin.blm_plugin.get_model(blm_model_name)
+    plugin.debug_log(f'Model Selected:{blm_model}')
+    
+    if blm_model["type"]=="low-cost":
         character_names = [character.get('original_name') for character in character_candidate_list]
         # 返回包含在user_prompt中的角色名
         return [character_name for character_name in character_names if character_name in user_prompt]
-
-    if gpt_model == 'gpt-3.5/4-mixed':
-        gpt_model = 'gpt-4'
 
     with open(f'{curr_dir}/../templates/sd-subject-confirmation-v1.txt', 'r', encoding='utf-8') as file:
         command = file.read()
@@ -44,7 +45,7 @@ async def identify_character(plugin,character_candidate_list:List[Dict[str,str]]
     retry = 0
     while retry < 3:
         retry += 1
-        success, answer = await ask_chatgpt_with_json(plugin.chatgpt_plugin, prompt=command, model=gpt_model)
+        success, answer = await ask_chatgpt_with_json(plugin.blm_plugin, prompt=command, model_name=blm_model_name)
 
         if success and answer:
             if len(answer)>0:
@@ -57,8 +58,10 @@ async def identify_character(plugin,character_candidate_list:List[Dict[str,str]]
 async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
         
     batch_count = plugin.get_config("batch_count")
-    gpt_model = plugin.get_config("gpt_model")
-    if gpt_model != 'gpt-3.5-turbo' and gpt_model != 'gpt-3.5/4-mixed':
+
+    blm_model_name = plugin.get_config("blm_model")
+    blm_model = plugin.blm_plugin.get_model(blm_model_name)
+    if blm_model["type"]=="low-cost":
         # 返回batch_count组dict,prompt是原来的prompt,style是从"Chibi","Anime","Manga","Photographic",Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"中随机的一个
         
         def generate_random_style():
@@ -80,7 +83,7 @@ async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
     retry = 0
     while retry < 3:
         retry += 1
-        success, answer = await ask_chatgpt_with_json(plugin.chatgpt_plugin, prompt=command, model='gpt-3.5-turbo')
+        success, answer = await ask_chatgpt_with_json(plugin.blm_plugin, prompt=command, model_name=blm_model_name)
 
         if success and answer:
             if len(answer)>0:

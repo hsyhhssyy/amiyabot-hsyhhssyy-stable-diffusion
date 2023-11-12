@@ -15,6 +15,7 @@ from core import bot as main_bot
 from amiyabot.log import LoggerManager
 
 from ..lib.webuiapi import WebUIApi
+from .developer_type import BLMAdapter
 
 curr_dir = os.path.dirname(__file__)
 
@@ -28,7 +29,7 @@ ANIMATED_DIFF_SCRIPTS_PATH = f"{SCRIPT_ROOT_DIR}/animated_diff.json"
 class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
     webui_api: Union[WebUIApi, None] = None
     cache = {}
-    chatgpt_plugin = None
+    blm_plugin: BLMAdapter = None
     __cached_docs = None
 
     def install(self):
@@ -38,7 +39,11 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         if not os.path.exists(PLUGIN_ACCESSORIES_DIR):
             os.makedirs(PLUGIN_ACCESSORIES_DIR)
 
-        self.chatgpt_plugin = main_bot.plugins['amiyabot-hsyhhssyy-chatgpt']
+        if 'amiyabot-blm-library' in main_bot.plugins:
+            self.blm_plugin = main_bot.plugins['amiyabot-blm-library']
+        else:
+            self.debug_log(f"未找到BLM插件，无法使用BLM功能。")
+            return
 
         # 创建一个定时任务，时间间隔为30秒
         self.__start_periodic_task(self.__refresh_api, 30)
@@ -56,7 +61,7 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
 
     def generate_schema(self):
 
-        filepath = f'{curr_dir}/../accessories/global_config_schema.v.1.0.json'
+        filepath = f'{curr_dir}/../accessories/global_config_schema.json'
 
         try:
             with open(filepath, 'r') as file:
@@ -64,6 +69,15 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         except (FileNotFoundError, json.JSONDecodeError):
             self.debug_log(f"Failed to load JSON from {filepath}.")
             return None
+
+        if "blm_model_list" in self.cache:
+            blm_model_list = self.cache["blm_model_list"]
+            try:                        
+                data["properties"]["blm_model"]["enum"] = [model["model_name"] for model in blm_model_list]
+            except KeyError as e:
+                stack_trace = traceback.format_exc()
+                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+        
 
         new_values = ["..."]
         
@@ -145,6 +159,13 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         threading.Thread(target=wrapper).start()
 
     def __refresh_api(self):
+
+        if 'amiyabot-blm-library' in main_bot.plugins:
+            blm_lib = main_bot.plugins['amiyabot-blm-library']
+                
+            if blm_lib is not None:
+                blm_model_list = blm_lib.model_list()
+                self.cache["blm_model_list"] = blm_model_list
 
         docs = self.get_config("sd_docs_url")
 

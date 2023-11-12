@@ -113,8 +113,8 @@
       "description": "如果SD服务无法连接，兔兔会回复的话。",
       "type": "string"
     },
-    "gpt_model": {
-      "title": "GPT模型",
+    "blm_model": {
+      "title": "BLM模型",
       "description": "Model/Checkpoint",
       "type": "string",
       "enum": [
