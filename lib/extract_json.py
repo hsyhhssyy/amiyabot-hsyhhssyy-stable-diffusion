@@ -1,4 +1,5 @@
 import json
+import traceback
 from typing import List, Dict, Any, Union
 
 from ..src.developer_type import BLMAdapter
@@ -37,7 +38,7 @@ async def ask_chatgpt_with_json(blm_plugin:BLMAdapter, prompt: str, model_name:s
             return False, "重试次数用完"
 
     except Exception as e:
-        return False, f"报告异常{e}"
+        return False, f"报告异常{e}\n{traceback.format_exc()}"
     
     return True,json_objects
 

@@ -61,15 +61,14 @@ async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
 
     blm_model_name = plugin.get_config("blm_model")
     blm_model = plugin.blm_plugin.get_model(blm_model_name)
-    if blm_model["type"]=="low-cost":
-        # 返回batch_count组dict,prompt是原来的prompt,style是从"Chibi","Anime","Manga","Photographic",Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"中随机的一个
+    # if blm_model["type"]=="low-cost":
+    #     # 返回batch_count组dict,prompt是原来的prompt,style是从"Chibi","Anime","Manga","Photographic",Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"中随机的一个
         
-        def generate_random_style():
-            styles = ["Chibi","Anime","Manga","Photographic","Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"]
-            return random.choice(styles)
+    #     def generate_random_style():
+    #         styles = ["Chibi","Anime","Manga","Photographic","Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"]
+    #         return random.choice(styles)
         
-        return [{"prompt":user_prompt,"style":generate_random_style()} for i in range(batch_count)]
-
+    #     return [{"prompt":user_prompt,"style":generate_random_style()} for i in range(batch_count)]
 
     command = "<<PROMPT>>"
 
@@ -86,17 +85,17 @@ async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
         success, answer = await ask_chatgpt_with_json(plugin.blm_plugin, prompt=command, model_name=blm_model_name)
 
         if success and answer:
-            if len(answer)>0:
-                answer_json = answer[0]
-                if isinstance(answer_json, list) and isinstance(answer_json[0], dict):
-                    ret_dict = []
-                    for answer_candidate_json in answer_json:
-                        if answer_candidate_json.get('style') and answer_candidate_json.get('prompt'):
-                            ret_dict.append({"style":answer_candidate_json.get('style'),"prompt":answer_candidate_json.get('prompt')})
-                    # 有时候会返回多个，取前batch_count个
-                    ret_dict = ret_dict[:batch_count]
-                    plugin.debug_log(f"生成的Prompt: {ret_dict}")
-                    return ret_dict
+            if isinstance(answer, list) and len(answer)>0 and isinstance(answer[0], dict):
+                ret_dict = []
+                for answer_candidate_json in answer:
+                    if answer_candidate_json.get('style') and answer_candidate_json.get('prompt'):
+                        ret_dict.append({"style":answer_candidate_json.get('style'),"prompt":answer_candidate_json.get('prompt')})
+                # 有时候会返回多个，取前batch_count个
+                ret_dict = ret_dict[:batch_count]
+                plugin.debug_log(f"生成的Prompt: {ret_dict}")
+                return ret_dict
+        else:
+            plugin.debug_log(f"调用ChatGPT失败: {answer}")
     
     return []
 
