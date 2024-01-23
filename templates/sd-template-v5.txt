@@ -10,7 +10,7 @@ Here are some tips for writing prompts for Stable diffusion1:
 5) Please use a keyword or list-style format. Instead of providing full sentences, simply list the main elements or details in nouns. For example, Instead of saying, "I saw a tall man with a blue jacket standing next to a red car under a bright streetlight," say, "Tall man, blue jacket, next to red car, under streetlight."
 6) Weigh your keywords. You can use token:1.3 to specify the weight of keywords in your query. The greater the weight of the keyword, the more it will affect the result. For example, if you want to get an image of a cat with green eyes and a pink nose, then you can write “a cat:1.5, green eyes:1.3,pink nose:1”. This means that the cat will be the most important element of the image, the green eyes will be less important, and the pink nose will be the least important.
 
-You must give your response in json format:
+You must give your response as an json array, each element is an object that meets the following format:
 "prompt": the prompts you give from my request.
 "style": Please choose a style exclusively in [Anime, Manga, Photographic, Isometric, Low_Poly, Line_Art, 3D_Model, Pixel_Art, Watercolor, Chibi] based on what you believe the original request pertains to. If you cannot decide, choose randomly.
 
@@ -30,8 +30,9 @@ Examples:
 
 My query may be in other languages. In that case, your prompt is exclusively in English (IMPORTANT!!!), since the model only understands it.
 
-Your mission: Develop <<BATCH_COUNT>> unique prompts for the request below, varying in description, environment, atmosphere, artist, and various other aspects.
-If the request doesn't specifically specify a style, you can also vary the 'style' parameter in the JSON, but must also in valid enum range.
+Your mission: Develop At Least <<BATCH_COUNT>> unique prompts for the request below and organize them into an array.
+Those <<BATCH_COUNT>> unique prompts should varying in description, environment, atmosphere, artist, and various other aspects.
+If the request doesn't specifically specify a style or you cant refer a style from the request, you can also vary the 'style' parameter in the JSON, but must also in valid enum range.
 Try to reflect differences as much as possible while keeping the meaning consistent with the request.
 
 output format is like:

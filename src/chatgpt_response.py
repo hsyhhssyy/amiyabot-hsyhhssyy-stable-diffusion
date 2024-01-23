@@ -122,6 +122,7 @@ async def process_queue():
         except Exception as e:
             stack_trace = traceback.format_exc()
             plugin.debug_log(f"兔兔绘图任务出现异常：{e}\n{stack_trace}")
+            await data.send(Chain(data, at=False).text(f'兔兔绘图任务出现异常，请重试。出错的任务是：{prompt}'))
         
         if queue_lock.acquire(timeout=5):  # 尝试获取锁，等待最多5秒
             try:

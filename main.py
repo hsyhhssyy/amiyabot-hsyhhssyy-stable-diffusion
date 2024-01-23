@@ -35,6 +35,21 @@ bot = StableDiffusionPluginInstance(
     global_config_schema = dynamic_get_global_config_schema_data
 )
 
+def enabled_in_this_channel(channel_id:str) -> bool:
+    black_list_mode:bool = bot.get_config("black_list_mode")
+    black_white_list:list = bot.get_config("black_white_list")
+
+
+    if black_list_mode:
+        if black_white_list is not None and channel_id in black_white_list:
+            return False
+        else:
+            return True
+    else:
+        if black_white_list is not None and channel_id in black_white_list:
+            return True
+        else:
+            return False
 
 @bot.on_message(keywords=['兔兔下载Lora'],level=114514,allow_direct=True,direct_only=True)
 async def _(data: Message):
@@ -72,39 +87,12 @@ async def _(data: Message):
 
     await data.send(Chain(data, at=False).text(f'Lora模型下载完成，共下载{len(word_replace_config)}个模型。'))
 
-# @bot.on_message(keywords=['兔兔清除词语替换'],level=114514,allow_direct=True,direct_only=True)
-# async def _(data: Message):
-#     if not data.is_admin:
-#         await data.send(Chain(data, at=False).text(f'抱歉，您没有权限。'))
-#         return
-    
-#     bot.set_config("word-replace",[])
-#     await data.send(Chain(data, at=False).text(f'已清除词语替换。'))
-
-
-# @bot.on_message(keywords=['兔兔备份词语替换'],level=114514,allow_direct=True,direct_only=True)
-# async def _(data: Message):
-#     if not data.is_admin:
-#         await data.send(Chain(data, at=False).text(f'抱歉，您没有权限。'))
-#         return
-    
-#     bot.set_config("word-replace-backup",bot.get_config("word-replace"))
-#     await data.send(Chain(data, at=False).text(f'已备份词语替换。'))
-
-# @bot.on_message(keywords=['兔兔恢复备份词语替换'],level=114514,allow_direct=True,direct_only=True)
-# async def _(data: Message):
-#     if not data.is_admin:
-#         await data.send(Chain(data, at=False).text(f'抱歉，您没有权限。'))
-#         return
-    
-#     if len(bot.get_config("word-replace-backup")) == 0:
-#         await data.send(Chain(data, at=False).text(f'没有备份词语替换。'))
-#         return
-#     bot.set_config("word-replace",bot.get_config("word-replace-backup"))
-#     await data.send(Chain(data, at=False).text(f'已恢复备份词语替换。'))
-
 @bot.on_message(keywords=['兔兔查询绘图队列'],level=114514)
 async def _(data: Message):
+
+    if enabled_in_this_channel(data.channel_id) == False:
+        return
+
     queue_text = get_channel_queue(data.channel_id)
     if len(queue_text) == 0:
         await data.send(Chain(data, at=False).text(f'当前频道没有正在处理的兔兔绘图任务。'))
@@ -116,6 +104,9 @@ async def _(data: Message):
 
 @bot.on_message(keywords=['兔兔绘图'],level=114514)
 async def _(data: Message):
+
+    if enabled_in_this_channel(data.channel_id) == False:
+        return
 
     if bot.webui_api is None:
         bot.debug_log(f"未加载WebUIApi，汇报错误。")

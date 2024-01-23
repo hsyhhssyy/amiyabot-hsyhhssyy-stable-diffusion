@@ -73,7 +73,8 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         if "blm_model_list" in self.cache:
             blm_model_list = self.cache["blm_model_list"]
             try:                        
-                data["properties"]["blm_model"]["enum"] = [model["model_name"] for model in blm_model_list]
+                data["properties"]["blm_high_cost_model"]["enum"] = [model["model_name"] for model in blm_model_list]
+                data["properties"]["blm_low_cost_model"]["enum"] = [model["model_name"] for model in blm_model_list]
             except KeyError as e:
                 stack_trace = traceback.format_exc()
                 self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")

@@ -22,9 +22,10 @@ async def ask_chatgpt_with_json(blm_plugin:BLMAdapter, prompt: str, model_name:s
         
         while retry_count < max_retries:
             response = await blm_plugin.chat_flow(prompt=prompt,
-                                                  model=model["model_name"])
+                                                  model=model["model_name"],
+                                                  json_mode=True)
             if response:
-                json_objects = blm_plugin.extract_json(response)
+                json_objects = json.loads(response)
 
                 successful_sent = True
 

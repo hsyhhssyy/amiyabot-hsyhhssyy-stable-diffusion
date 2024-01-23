@@ -1,7 +1,17 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "properties": {
+  "properties": {    
+    "black_list_mode": {
+      "title": "黑名单模式",
+      "description": "开启时是全局启用，黑名单中频道不启用的模式。关闭时则是全局不启用但是白名单中频道启用的模式。",
+      "type": "boolean"
+    },    
+    "black_white_list": {
+      "title": "黑/白名单",
+      "description": "频道id的列表，用于在黑白名单模式充当黑白名单",
+      "type": "array"
+    },
     "sd_docs_url": {
       "title": "Docs Url",
       "description": "你的WebUI的FastApi文档路径，通常来说是类似于“http://localhost:7777/docs”的地址，你需要试着访问一下看看是否能使用",
@@ -113,8 +123,18 @@
       "description": "如果SD服务无法连接，兔兔会回复的话。",
       "type": "string"
     },
-    "blm_model": {
-      "title": "BLM模型",
+    "blm_high_cost_model": {
+      "title": "BLM高性能模型",
+      "description": "Model/Checkpoint",
+      "type": "string",
+      "enum": [
+        "不使用(非常不推荐)",
+        "gpt-3.5-turbo",
+        "gpt-3.5/4-mixed"
+      ]
+    },
+    "blm_low_cost_model": {
+      "title": "BLM低价格模型",
       "description": "Model/Checkpoint",
       "type": "string",
       "enum": [

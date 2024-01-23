@@ -19,11 +19,12 @@ async def identify_character(plugin:StableDiffusionPluginInstance,character_cand
 
     character_candidate = [character.get('name_with_suffix') for character in character_candidate_list]
 
-    blm_model_name = plugin.get_config("blm_model")
+    blm_model_name = plugin.get_config("blm_high_cost_model")
     blm_model = plugin.blm_plugin.get_model(blm_model_name)
     plugin.debug_log(f'Model Selected:{blm_model}')
     
     if blm_model["type"]=="low-cost":
+        # low-cost干不了这个活，不如不花这个冤枉钱
         character_names = [character.get('original_name') for character in character_candidate_list]
         # 返回包含在user_prompt中的角色名
         return [character_name for character_name in character_names if character_name in user_prompt]
@@ -43,32 +44,26 @@ async def identify_character(plugin:StableDiffusionPluginInstance,character_cand
     command = command.replace("<<PROMPT>>", f'{user_prompt}')
     
     retry = 0
-    while retry < 3:
+    while retry < 1:
         retry += 1
         success, answer = await ask_chatgpt_with_json(plugin.blm_plugin, prompt=command, model_name=blm_model_name)
 
         if success and answer:
-            if len(answer)>0:
-                answer_json = answer[0]
-                # 判断answer是否是对象数组
-                if isinstance(answer_json, list) and len(answer_json)>0 and isinstance(answer_json[0], str):
-                    return answer_json
+            # 判断answer是否是对象数组
+            if isinstance(answer, list) and len(answer)>0 and isinstance(answer[0], str):
+                return answer
+            # 判断answer是否是对象，如果是，他是否含有数组类型的成员，取第一个
+            elif isinstance(answer, dict):
+                for value in answer.values():
+                    if isinstance(value, list) and len(value)>0 and isinstance(value[0], str):
+                        return value
     return []
 
 async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
         
     batch_count = plugin.get_config("batch_count")
 
-    blm_model_name = plugin.get_config("blm_model")
-    blm_model = plugin.blm_plugin.get_model(blm_model_name)
-    # if blm_model["type"]=="low-cost":
-    #     # 返回batch_count组dict,prompt是原来的prompt,style是从"Chibi","Anime","Manga","Photographic",Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"中随机的一个
-        
-    #     def generate_random_style():
-    #         styles = ["Chibi","Anime","Manga","Photographic","Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"]
-    #         return random.choice(styles)
-        
-    #     return [{"prompt":user_prompt,"style":generate_random_style()} for i in range(batch_count)]
+    blm_model_name = plugin.get_config("blm_high_cost_model")
 
     command = "<<PROMPT>>"
 
@@ -85,15 +80,58 @@ async def generate_danbooru_tags(plugin,user_prompt:str) -> str:
         success, answer = await ask_chatgpt_with_json(plugin.blm_plugin, prompt=command, model_name=blm_model_name)
 
         if success and answer:
-            if isinstance(answer, list) and len(answer)>0 and isinstance(answer[0], dict):
-                ret_dict = []
-                for answer_candidate_json in answer:
+
+            plugin.debug_log(f"调用ChatGPT成功，结果为: ")
+            plugin.debug_log(f"{answer}")
+
+
+            # 展平answer
+            flattened_list = []
+
+            if isinstance(answer, list) and len(answer)>0:
+                for item in answer:
+                    if isinstance(item, dict):
+                        flattened_list.append(item)
+                    elif isinstance(item, list):
+                        flattened_list.extend([elem for elem in item if isinstance(elem, dict)])
+            elif isinstance(answer, dict):
+                flattened_list.append(answer)
+
+            if len(flattened_list) == 0:
+                plugin.debug_log(f"调用ChatGPT失败: {answer}")
+                return []
+
+            if len(flattened_list) < batch_count:
+                # 用最后一个结果,使用不包含在结果中的Random Style替换style产生新的Prompt补足BatchCount
+                # - "Anime" - 动画
+                # - "Manga" - 漫画
+                # - "Photographic" - 照片
+                # - "Isometric" - 微距
+                # - "Low_Poly" - 低分辨率
+                # - "Line_Art" - 素描
+                # - "3D_Model" - 3D模型
+                # - "Pixel_Art" - 像素风
+                # - "Watercolor" - 水彩
+                last = flattened_list[-1]
+                style_choice_list = ["Anime","Manga","Photographic","Isometric","Low_Poly","Line_Art","3D_Model","Pixel_Art","Watercolor"]
+
+                if last.get('style') and last.get('prompt'):                
+                    style_choice_list.remove(last.get('style'))
+                    for i in range(batch_count - len(flattened_list)):
+                        randomStyle = random.choice(style_choice_list)
+                        style_choice_list.remove(randomStyle)
+                        flattened_list.append({"style":randomStyle,"prompt":last.get('prompt')})
+                
+
+            ret_dict = []
+            for answer_candidate_json in flattened_list:
+                if isinstance(answer_candidate_json, dict):
                     if answer_candidate_json.get('style') and answer_candidate_json.get('prompt'):
                         ret_dict.append({"style":answer_candidate_json.get('style'),"prompt":answer_candidate_json.get('prompt')})
-                # 有时候会返回多个，取前batch_count个
-                ret_dict = ret_dict[:batch_count]
-                plugin.debug_log(f"生成的Prompt: {ret_dict}")
-                return ret_dict
+            # 有时候会返回多个，取前batch_count个
+            ret_dict = ret_dict[:batch_count]
+            plugin.debug_log(f"生成的Prompt: {ret_dict}")
+            return ret_dict
         else:
             plugin.debug_log(f"调用ChatGPT失败: {answer}")
     
@@ -186,6 +224,7 @@ def handle_operator_candidates(plugin, operator_candidate):
 
 async def match_operators(plugin, candidates_for_chatgpt, original_prompt):
     char_json = await identify_character(plugin, candidates_for_chatgpt.values(), original_prompt)
+    
     operator_candidate_final = []
     if char_json:
         for char_name in char_json:
