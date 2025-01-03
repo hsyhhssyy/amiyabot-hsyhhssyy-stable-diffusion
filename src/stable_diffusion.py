@@ -12,16 +12,13 @@ from io import BytesIO
 from amiyabot.network.download import download_sync
 from amiyabot import Message, Chain
 
-
-from .plugin_instance import StableDiffusionPluginInstance,ADETAILER_SCRIPTS_PATH,ANIMATED_DIFF_SCRIPTS_PATH
+from .plugin_instance import StableDiffusionPluginInstance
 
 from ..lib.webuiapi import ControlNetUnit
 from ..lib.command_line_utils import parse_command
 from ..lib.mathmatic import compute_dimensions,compute_dimensions_from_value
 from ..lib.pil_utils import combine_images
 from ..lib.bot_core_util import get_response_id
-
-from ..src.chatgpt_presets import generate_danbooru_tags, select_model, word_replace
 
 curr_dir = os.path.dirname(__file__)
 
@@ -38,11 +35,6 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
     user_prompt, param_dict = parse_command(user_prompt.strip())
 
-    animated_diff_conf = plugin.get_config("animated_diff") or {}
-
-    if animated_diff_conf.get("enabled") != True:
-        param_dict['gif'] = None
-
     width, height = compute_dimensions(param_dict,plugin.get_config("standard_resolution"))
 
     images_in_prompt = []
@@ -52,63 +44,9 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
             pilImage = Image.open(BytesIO(imgBytes))
             images_in_prompt.append(pilImage)
 
-    # 处理ControlNet Unit
-
-    control_net_conf = plugin.get_config("control_net") or {}
-    
-    ip_adapter_unit = None
-    canny_unit = None
-    
-    plugin.debug_log(f"Image in Prompt: {len(images_in_prompt)}")
-    plugin.debug_log(f"ControlNet Config: {control_net_conf}")
-
-    if len(images_in_prompt) >0:
-        if "ip_adapter" in control_net_conf:
-            ip_adapter_module = control_net_conf["ip_adapter"]["module"]
-            ip_adapter_model = control_net_conf["ip_adapter"]["model"]
-
-            if ip_adapter_module != "不使用" and ip_adapter_model != "...":
-
-                ip_adapter_weight = 0.5
-
-                if param_dict.get('ia') is not None:
-                    if param_dict.get('ia') != True:
-                        ip_adapter_weight = float(param_dict.get('ia'))
-
-                # 哪张图都是第一张
-                ip_adapter_image = images_in_prompt[0]
-
-                plugin.debug_log(f"ControlNet:使用IP Adapter模块，权重{ip_adapter_weight},图片尺寸{width}x{height},模块{ip_adapter_module},模型{ip_adapter_model}")
-
-                # ip_adapter下的weight实际控制的是ip_adapter的Ending Control Step
-                ip_adapter_unit = ControlNetUnit(input_image=ip_adapter_image, module=ip_adapter_module, model=ip_adapter_model,guidance_start=1- ip_adapter_weight,guidance_end=1)
-        
-        if "canny" in control_net_conf:
-            canny_module = control_net_conf["canny"]["module"]
-            canny_model = control_net_conf["canny"]["model"]
-
-            if canny_module != "不使用" and canny_model != "...":
-                canny_weight = 0.5
-                
-                if param_dict.get('ca') is not None:
-                    if param_dict.get('ca') != True:
-                        canny_weight = float(param_dict.get('ca'))
-                
-                # 如果两张图则是第二张
-                if len(images_in_prompt) >= 2:
-                    canny_image = images_in_prompt[1]
-                else:
-                    canny_image = images_in_prompt[0]
-                
-                plugin.debug_log(f"ControlNet:使用Canny模块，权重{canny_weight},模块{canny_module},模型{canny_model}")
-                # canny下的weight实际控制的是canny的Ending Control Step
-                canny_unit = ControlNetUnit(input_image=canny_image, module=canny_module, model=canny_model,guidance_start = 0 ,guidance_end=canny_weight)
-
-    # 对提示词搜索角色
-    character_candidate = await word_replace(plugin, user_prompt)
-
-    # 生成tag
-    danbooru_tags = await generate_danbooru_tags(plugin, user_prompt)
+    # 生成batch_count长度的数组，每个数组元素都是原始输入
+    batch_count = plugin.get_config("batch_count")
+    danbooru_tags = [{"prompt":user_prompt} for i in range(batch_count)]
 
     # 开始绘图
     if len(danbooru_tags) > 0:
@@ -118,24 +56,16 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
             # 处理提示词
             sd_prompt = answer_item["prompt"]
-            for char_setting in character_candidate:
-                sd_prompt = sd_prompt + "," + char_setting["value"]
 
             options = {}
 
-            sd_model = select_model(plugin, answer_item["style"])
-            if sd_model is not None and sd_model["model"] != "...":
-                options['sd_model_checkpoint'] = sd_model["model"]
+            default_model_config = plugin.get_config("default_model")
 
-            sampler_index = "Euler a"
-            if sd_model is not None and sd_model["sampler"] != "...":
-                sampler_index = sd_model["sampler"]
+            sd_model = default_model_config["model"]
+            options['sd_model_checkpoint'] = sd_model
+            options['sd_vae'] = default_model_config["vae"]
 
-            if sd_model is not None and sd_model["prompts"] != "...":
-                sd_prompt = sd_prompt + "," + sd_model["prompts"]
-            
-            if sd_model is not None and sd_model["vae"] != "..." and sd_model["vae"] != "":
-                options['sd_vae'] = sd_model["vae"]
+            # sampler_index = "Euler a"
 
             positive_prompts = plugin.get_config("positive_prompts")
 
@@ -151,29 +81,6 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 image_for_resolution = images_in_prompt[:2][-1]
                 width, height = compute_dimensions_from_value(image_for_resolution.width,image_for_resolution.height, param_dict,plugin.get_config("standard_resolution"))
                 plugin.debug_log(f"ControlNet:使用图片尺寸{width}x{height}")
-
-            if len(images_in_prompt) >= 2:
-                if ip_adapter_unit is not None:
-                    plugin.debug_log(f"ControlNet:使用IP Adapter模块")
-                    control_net_units.append(ip_adapter_unit)
-                if canny_unit is not None:
-                    plugin.debug_log(f"ControlNet:使用Canny模块")
-                    control_net_units.append(canny_unit)
-            elif len(images_in_prompt) == 1:
-                if param_dict.get('ca') is not None and canny_unit is not None:
-                    plugin.debug_log(f"ControlNet:使用Canny模块")
-                    control_net_units.append(canny_unit)
-                elif param_dict.get('ia') is not None and ip_adapter_unit is not None:
-                    plugin.debug_log(f"ControlNet:使用IP Adapter模块")
-                    control_net_units.append(ip_adapter_unit)
-                else:
-                    # 从两个unit里随机选一个
-                    if random.randint(0, 1) == 0 and ip_adapter_unit is not None:
-                        plugin.debug_log(f"ControlNet:随机使用IP Adapter模块")
-                        control_net_units.append(ip_adapter_unit)
-                    elif canny_unit is not None:
-                        plugin.debug_log(f"ControlNet:随机使用Canny模块")
-                        control_net_units.append(canny_unit)
 
             # # fixed param for testing
             # seed = 114514
@@ -195,15 +102,11 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "styles": [],
                 "steps": 20,
                 "cfg_scale": 7,
-                "sampler_index": sampler_index,
+                # "sampler_index": sampler_index,
                 "width": width,
                 "height": height,
                 "alwayson_scripts": {}
             }
-
-            if ADETAILER_SCRIPTS_PATH:
-                adetailer_conf = json.load(open(ADETAILER_SCRIPTS_PATH, 'r', encoding='utf-8'))
-                drawing_param["alwayson_scripts"]["ADetailer"]=adetailer_conf["ADetailer"]
 
             drawing_params.append(drawing_param)
 
@@ -238,41 +141,22 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 "height",
                 "alwayson_scripts"]}
             
-            
             plugin.debug_log(f"使用Scripts: {selected_params['alwayson_scripts']}")
 
 
             if len(images_in_prompt) == 0:
-                if param_dict.get('gif') is not None:
-                    if ANIMATED_DIFF_SCRIPTS_PATH:
-                        animated_diff_json = json.load(open(ANIMATED_DIFF_SCRIPTS_PATH, 'r', encoding='utf-8'))
-                        selected_params["alwayson_scripts"]["AnimateDiff"]=animated_diff_json["AnimateDiff"]
-                    
-                        selected_params["alwayson_scripts"]["AnimateDiff"]["args"][0]["model"] = animated_diff_conf.get("model","animatediffMotion_v15V2.ckpt")
-                    
-                        animated_diff_lora_list = animated_diff_conf.get("lora_list","").split(",")
-                        random_lora = random.choice(animated_diff_lora_list)
-                        selected_params["prompt"] = selected_params["prompt"] + ", " + random_lora
-
-                        plugin.debug_log(f"AnimatedDiff 使用Scripts: {selected_params['alwayson_scripts']}")
-
-                        result = plugin.webui_api.txt2img(**selected_params)
-                    else:
-                        await data.send(Chain(data, at=False).text(f'真抱歉，该功能管理员未能正确配置。'))
-                        return
-                else:
-                    result = plugin.webui_api.txt2img(**selected_params)
-            else:
-                control_net_units = drawing_param["control_net_units"]
-                if control_net_units:
-                    selected_params = {**selected_params,
-                                    **{
-                                        "controlnet_units":control_net_units
-                                    }}
-                    result = plugin.webui_api.txt2img(**selected_params)
-                else:
-                    result = plugin.webui_api.img2img(
-                        images=[drawing_param["images"][0]], **selected_params)
+                result = plugin.webui_api.txt2img(**selected_params)
+            # else:
+            #     control_net_units = drawing_param["control_net_units"]
+            #     if control_net_units:
+            #         selected_params = {**selected_params,
+            #                         **{
+            #                             "controlnet_units":control_net_units
+            #                         }}
+            #         result = plugin.webui_api.txt2img(**selected_params)
+            #     else:
+            #         result = plugin.webui_api.img2img(
+            #             images=[drawing_param["images"][0]], **selected_params)
 
             images_output.append(result.image)
 
@@ -282,11 +166,7 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 file_ext = param_dict.get('gif') and "gif" or "png"
                 result.image.save(
-                    f'{OUTPUT_SAVE_PATH}/StableDiffusionPlugin.v{plugin.version}.{timestamp}.{file_ext}')
-
-            if param_dict.get('gif'):
-                # gif 模式下只允许一张图片
-                break        
+                    f'{OUTPUT_SAVE_PATH}/StableDiffusionPlugin.v{plugin.version}.{timestamp}.{file_ext}')  
 
 
         grid_total_second = round(
@@ -307,35 +187,3 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
         await data.send(Chain(data, at=False).text(f'真抱歉，您的提示词似乎出了点问题，请再试一次吧。'))
 
     plugin.debug_log(f"退出兔兔绘图功能")
-
-
-async def high_res_task(plugin: StableDiffusionPluginInstance,data:Message,quote_id:str):
-    original_params = genrated_images.get(quote_id,None)
-    if not original_params:
-        await data.send(Chain(data, at=False).text(f'真抱歉，您引用的不是兔兔的绘图结果，请再试一次吧。'))
-        return
-    
-    selected_param = original_params[0]
-    file_name = selected_param["file_name"]
-    image = Image.open(file_name)
-    width = image.width
-    height = image.height
-
-    plugin.debug_log(f"高清绘图 完整流程")
-    selected_params = {k: selected_param[k] for k in [
-                "prompt",
-                "negative_prompt",
-                "seed",
-                "styles",
-                "steps",
-                "cfg_scale",
-                "sampler_index",
-                "width",
-                "height",
-                "alwayson_scripts"]}
-    result = plugin.webui_api.img2img(
-                        images=[selected_param["images"][0]], **selected_params)
-    buffer = BytesIO()
-    result.image.save(buffer, format="PNG")
-    img_bytes = buffer.getvalue()
-    draw_result_msg = await data.send(Chain(data, at=False).text(f'绘图结果:').image(img_bytes))

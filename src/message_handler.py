@@ -8,7 +8,7 @@ import traceback
 
 from amiyabot import Chain
 from .plugin_instance import StableDiffusionPluginInstance
-from .stable_diffusion import simple_img_task,high_res_task
+from .stable_diffusion import simple_img_task
 from ..lib.command_line_utils import parse_command
 from ..lib.bot_core_util import get_quote_id
 
@@ -105,11 +105,7 @@ async def process_queue():
 
             task_prompt =""
 
-            if quote_id!=0:
-                task_prompt = "高清绘制"
-                await data.send(Chain(data, at=False).text(f'兔兔暂不支持读取引用消息中的数据哦。'))
-                continue
-            elif data.image:
+            if data.image:
                 task_prompt = "（图生图）"
 
             time = count_time(plugin,prompt)
@@ -147,7 +143,7 @@ def run_event_loop():
 worker = threading.Thread(target=run_event_loop, daemon=True)
 worker.start()
 
-async def ChatGPTResponse(plugin: StableDiffusionPluginInstance, data):
+async def handle_message(plugin: StableDiffusionPluginInstance, data):
 
     plugin.debug_log(f"进入兔兔绘图功能")
 

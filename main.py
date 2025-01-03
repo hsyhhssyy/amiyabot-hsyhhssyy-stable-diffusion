@@ -7,8 +7,7 @@ from amiyabot import Message, Chain
 from core import Requirement
 
 from .src.plugin_instance import StableDiffusionPluginInstance
-from .src.chatgpt_response import ChatGPTResponse,get_channel_queue,get_global_queue
-from .lib.download_lora import download_from_civitai,word_replace_config
+from .src.message_handler import get_channel_queue,handle_message
 
 curr_dir = os.path.dirname(__file__)
 
@@ -22,15 +21,12 @@ def dynamic_get_global_config_schema_data():
         return f'{curr_dir}/accessories/global_config_default.json'
 
 bot = StableDiffusionPluginInstance(
-    name='AI画图(StableDiffusion+ChatGPT)',
-    version='0.2.1',
+    name='StableDiffusion绘图',
+    version='0.2.2',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
-    description='（更新了插件商店不显示文档和预览的Bug）',
+    description='安装前请读一下插件文档',
     document=f'{curr_dir}/README.md',
-    requirements=[
-        Requirement("amiyabot-blm-library")
-    ],
     global_config_default=f'{curr_dir}/accessories/global_config_default.json',
     global_config_schema = dynamic_get_global_config_schema_data
 )
@@ -50,42 +46,6 @@ def enabled_in_this_channel(channel_id:str) -> bool:
             return True
         else:
             return False
-
-@bot.on_message(keywords=['兔兔下载Lora'],level=114514,allow_direct=True,direct_only=True)
-async def _(data: Message):
-    if not data.is_admin:
-        await data.send(Chain(data, at=False).text(f'抱歉，您没有权限。'))
-        return
-    
-    # 创建一个Event用于等待线程完成
-    done_event = asyncio.Event()
-    
-    def thread_func():
-        try:
-            download_from_civitai(10,bot)
-        finally:
-            # 线程完成时，设置事件
-            done_event.set()
-
-    thread = threading.Thread(target=thread_func)
-    thread.start()
-
-    await data.send(Chain(data, at=False).text(f'已开始下载Lora模型。'))
-    
-    # This function will send updates every minute
-    async def send_progress_updates():
-        while not done_event.is_set():
-            await asyncio.sleep(60)  # Sleep for 1 minute
-            await data.send(Chain(data, at=False).text(f'Lora模型下载进度：已下载{len(word_replace_config)}个模型。'))
-
-    # Create a task for sending updates
-    update_task = asyncio.create_task(send_progress_updates())
-
-    # Wait for the thread to complete
-    await done_event.wait()
-    update_task.cancel()  # Cancel the update task when done
-
-    await data.send(Chain(data, at=False).text(f'Lora模型下载完成，共下载{len(word_replace_config)}个模型。'))
 
 @bot.on_message(keywords=['兔兔查询绘图队列'],level=114514)
 async def _(data: Message):
@@ -116,10 +76,5 @@ async def _(data: Message):
         else:
             await data.send(Chain(data, at=False).text(f'抱歉，暂时无法提供服务。'))
         return
-
-    # 如果没有ChatGPT就走最简流程然后返回
-    if bot.blm_plugin is None:
-        bot.debug_log(f"未加载BLM插件，无法使用")
-        return
     
-    await ChatGPTResponse(bot,data)
+    await handle_message(bot,data)

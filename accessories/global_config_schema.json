@@ -30,16 +30,6 @@
             "..."
           ]
         },
-        "prompts": {
-          "title": "提示词",
-          "description": "Prompts",
-          "type": "string"
-        },
-        "sampler": {
-          "title": "采样器",
-          "description": "Sampler",
-          "type": "string"
-        },
         "vae": {
           "title": "VAE",
           "description": "VAE",
@@ -50,67 +40,9 @@
         }
       }
     },
-    "model_selector": {
-      "title": "模型选择",
-      "description": "处理不同场景下模型的选择",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "style": {
-            "title": "style",
-            "description": "Model/Checkpoint",
-            "type": "string",
-            "enum": [
-              "Chibi",
-              "Anime",
-              "Manga",
-              "Photographic",
-              "Isometric",
-              "Low_Poly",
-              "Line_Art",
-              "3D_Model",
-              "Pixel_Art",
-              "Watercolor"
-            ]
-          },
-          "model": {
-            "title": "模型",
-            "description": "Model/Checkpoint",
-            "type": "string",
-            "enum": [
-              "..."
-            ]
-          },
-          "prompts": {
-            "title": "提示词",
-            "description": "Prompts",
-            "type": "string"
-          },
-          "sampler": {
-            "title": "采样器",
-            "description": "Sampler",
-            "type": "string"
-          },
-          "vae": {
-            "title": "VAE",
-            "description": "VAE",
-            "type": "string",
-            "enum": [
-              "..."
-            ]
-          }
-        }
-      }
-    },
-    "lora_resource_dir": {
-      "title": "Lora下载到",
-      "description": "Lora的下载目录。",
-      "type": "string"
-    },
     "positive_prompts": {
       "title": "Positive Prompts",
-      "description": "提示词，会被应用于每一个生成",
+      "description": "提示词，会额外被应用于每一个生成",
       "type": "string"
     },
     "negative_prompts": {
@@ -123,33 +55,8 @@
       "description": "如果SD服务无法连接，兔兔会回复的话。",
       "type": "string"
     },
-    "blm_high_cost_model": {
-      "title": "BLM高性能模型",
-      "description": "Model/Checkpoint",
-      "type": "string",
-      "enum": [
-        "不使用(非常不推荐)",
-        "gpt-3.5-turbo",
-        "gpt-3.5/4-mixed"
-      ]
-    },
-    "blm_low_cost_model": {
-      "title": "BLM低价格模型",
-      "description": "Model/Checkpoint",
-      "type": "string",
-      "enum": [
-        "不使用(非常不推荐)",
-        "gpt-3.5-turbo",
-        "gpt-3.5/4-mixed"
-      ]
-    },
     "show_log": {
       "title": "调试日志",
-      "description": "开启后将写入用于调试的大量日志。",
-      "type": "boolean"
-    },
-    "output_grid_first": {
-      "title": "先输出预览图",
       "description": "开启后将写入用于调试的大量日志。",
       "type": "boolean"
     },
@@ -169,117 +76,7 @@
       "title": "保存生成结果",
       "description": "开启后将写入用于调试的大量日志。",
       "type": "boolean"
-    },
-    "control_net": {
-      "title": "ControlNet",
-      "description": "开启后将写入用于调试的大量日志。",
-      "type": "object",
-      "properties": {
-        "canny": {
-          "title": "Canny(-ca)",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "object",
-          "properties": {        
-            "module": {
-              "title": "预处理器",
-              "description": "开启后将写入用于调试的大量日志。",
-              "type": "string",
-              "enum": [
-                "不使用"
-              ]
-            },
-            "model": {
-              "title": "模型",
-              "description": "开启后将写入用于调试的大量日志。",
-              "type": "string",
-              "enum": [
-                "..."
-              ]
-            }
-          }
-        },
-        "ip_adapter": {
-          "title": "IP-Adapter(-ia)",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "object",
-          "properties": {        
-            "module": {
-              "title": "预处理器",
-              "description": "开启后将写入用于调试的大量日志。",
-              "type": "string",
-              "enum": [
-                "不使用"
-              ]
-            },
-            "model": {
-              "title": "模型",
-              "description": "开启后将写入用于调试的大量日志。",
-              "type": "string",
-              "enum": [
-                "..."
-              ]
-            }
-          }
-        }
-      }
-    },
-    "tile_diffusion": {
-      "title": "允许放大指令",
-      "description": "开启后将允许使用TileDiffusion配合TileVAE放大图片",
-      "type": "boolean"
-    },
-    "animated_diff":{
-      "title": "GIF指令",
-      "description": "开启后将允许使用AnimatedDiff配合AnimatedVAE生成动态图片",
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "title": "启用",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "boolean"
-        },
-        "model": {
-          "title": "模型",
-          "description": "开启后将写入用于调试的大量日志。",
-          "type": "string"
-        },
-        "lora_list": {
-          "title": "MotionLora",
-          "description": "逗号分隔的多个Motion Lora的名字.",
-          "type": "string"
-        }
-      }
-    },
-    "word_replace": {
-      "title": "词语替换",
-      "type": "array",
-      "description": "当检测到对应的词汇时是执行替换",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "title": "检测词",
-            "type": "string",
-            "description": "一个字符串，检测到这个字符串就会触发处理。"
-          },
-          "value": {
-            "title": "附加Prompt",
-            "type": "string",
-            "description": "检测到检测词时，会附加一些内容到prompt中。可以用来实现附加Lora等功能。"
-          },
-          "erase_old": {
-            "title": "删除旧词汇",
-            "type": "boolean",
-            "description": "是否将旧的词汇直接删除"
-          },
-          "replacer": {
-            "title": "替换用词",
-            "type": "string",
-            "description": "是否将旧的词汇直接删除"
-          }
-        }
-      }
     }
   },
-  "required": ["batch_count"]
+  "required": []
 }

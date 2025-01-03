@@ -23,13 +23,10 @@ logger = LoggerManager('StableDiffusion')
 
 PLUGIN_ACCESSORIES_DIR = f"{curr_dir}/../../../resource/stable-diffusion/"
 SCRIPT_ROOT_DIR = f"{curr_dir}/../../../resource/stable-diffusion/alwayson_scripts"
-ADETAILER_SCRIPTS_PATH = f"{SCRIPT_ROOT_DIR}/adetailer.json"
-ANIMATED_DIFF_SCRIPTS_PATH = f"{SCRIPT_ROOT_DIR}/animated_diff.json"
 
 class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
     webui_api: Union[WebUIApi, None] = None
     cache = {}
-    blm_plugin: BLMAdapter = None
     __cached_docs = None
 
     def install(self):
@@ -39,24 +36,11 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         if not os.path.exists(PLUGIN_ACCESSORIES_DIR):
             os.makedirs(PLUGIN_ACCESSORIES_DIR)
 
-        if 'amiyabot-blm-library' in main_bot.plugins:
-            self.blm_plugin = main_bot.plugins['amiyabot-blm-library']
-        else:
-            self.debug_log(f"未找到BLM插件，无法使用BLM功能。")
-            return
-
         # 创建一个定时任务，时间间隔为30秒
         self.__start_periodic_task(self.__refresh_api, 30)
 
         if not os.path.exists(SCRIPT_ROOT_DIR):
             os.makedirs(SCRIPT_ROOT_DIR)
-
-        def copy_script(src, dst):
-            if not os.path.exists(dst):
-                shutil.copyfile(src, dst)
-
-        copy_script(f"{curr_dir}/../accessories/alwayson_scripts/adetailer.json", ADETAILER_SCRIPTS_PATH)
-        copy_script(f"{curr_dir}/../accessories/alwayson_scripts/animated_diff.json", ANIMATED_DIFF_SCRIPTS_PATH)
 
 
     def generate_schema(self):
@@ -70,16 +54,6 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
             self.debug_log(f"Failed to load JSON from {filepath}.")
             return None
 
-        if "blm_model_list" in self.cache:
-            blm_model_list = self.cache["blm_model_list"]
-            try:                        
-                data["properties"]["blm_high_cost_model"]["enum"] = [model["model_name"] for model in blm_model_list]
-                data["properties"]["blm_low_cost_model"]["enum"] = [model["model_name"] for model in blm_model_list]
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
-        
-
         new_values = ["..."]
         
         # 检查缓存
@@ -87,8 +61,7 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
             new_values += self.cache["models"]
             self.debug_log(f"models : {new_values}")
             try:                        
-                data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values
-                data["properties"]["model_selector"]["items"]["properties"]["model"]["enum"] = new_values
+                data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values                
             except KeyError as e:
                 stack_trace = traceback.format_exc()
                 self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
@@ -100,55 +73,10 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
             self.debug_log(f"vae : {new_values}")
             try:                        
                 data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
-                data["properties"]["model_selector"]["items"]["properties"]["vae"]["enum"] = new_values
             except KeyError as e:
                 stack_trace = traceback.format_exc()
                 self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
 
-        new_values = ["不使用"]
-
-        if "canny_modules" in self.cache:
-            new_values += self.cache["canny_modules"]
-            self.debug_log(f"canny_modules : {new_values}")
-            try:                        
-                data["properties"]["control_net"]["properties"]["canny"]["properties"]["module"]["enum"] = new_values
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
-
-        new_values = ["..."]
-
-        if "canny_models" in self.cache:
-            new_values += self.cache["canny_models"]
-            self.debug_log(f"canny_model : {new_values}")
-            try:                        
-                data["properties"]["control_net"]["properties"]["canny"]["properties"]["model"]["enum"] = new_values
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
-
-        new_values = ["不使用"]
-
-        if "ip_adapter_modules" in self.cache:
-            new_values += self.cache["ip_adapter_modules"]
-            self.debug_log(f"ip_adapter_modules : {new_values}")
-            try:                        
-                data["properties"]["control_net"]["properties"]["ip_adapter"]["properties"]["module"]["enum"] = new_values
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
-
-        new_values = ["..."]
-
-        if "ip_adapter_models" in self.cache:
-            new_values += self.cache["ip_adapter_models"]
-            self.debug_log(f"ip_adapter_model : {new_values}")
-            try:                        
-                data["properties"]["control_net"]["properties"]["ip_adapter"]["properties"]["model"]["enum"] = new_values
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
-        
         return data
 
     def __start_periodic_task(self, task, interval):
@@ -160,13 +88,6 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         threading.Thread(target=wrapper).start()
 
     def __refresh_api(self):
-
-        if 'amiyabot-blm-library' in main_bot.plugins:
-            blm_lib = main_bot.plugins['amiyabot-blm-library']
-                
-            if blm_lib is not None:
-                blm_model_list = blm_lib.model_list()
-                self.cache["blm_model_list"] = blm_model_list
 
         docs = self.get_config("sd_docs_url")
 
@@ -228,35 +149,6 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         except Exception as e:
             self.debug_log(f"Error accessing API: {e}")
 
-        
-        try:
-            models = self.webui_api.controlnet_control_types()
-            
-            self.debug_log(f'controlnet_control_types:{models}')
-
-            canny_modules = get_value_from_key(models, "Canny", "module_list") or []
-            canny_models = get_value_from_key(models, "Canny", "model_list") or []
-
-            ip_adapter_modules = get_value_from_key(models, "IP-Adapter", "module_list") or []
-            ip_adapter_models = get_value_from_key(models, "IP-Adapter", "model_list") or []
-            
-            # 移除四个集合里的字符串"none"和"None"
-            canny_modules = list(filter(lambda x: x.lower() != "none", canny_modules))
-            canny_models = list(filter(lambda x: x.lower() != "none", canny_models))
-
-            ip_adapter_modules = list(filter(lambda x: x.lower() != "none", ip_adapter_modules))
-            ip_adapter_models = list(filter(lambda x: x.lower() != "none", ip_adapter_models))
-
-            # 将查询结果存储到缓存中
-            self.cache["canny_modules"] = canny_modules
-            self.cache["canny_models"] = canny_models
-            self.cache["ip_adapter_modules"] = ip_adapter_modules
-            self.cache["ip_adapter_models"] = ip_adapter_models
-            
-            self.debug_log(f'canny_modules:{canny_modules},canny_models:{canny_models},ip_adapter_modules:{ip_adapter_modules},ip_adapter_models:{ip_adapter_models}')
-
-        except Exception as e:
-            self.debug_log(f"Error accessing API: {e}")
 
         self.debug_log(f"WebUIApi刷新完毕...")
     
