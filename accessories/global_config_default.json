@@ -1,16 +1,23 @@
 {
+    "black_list_mode":true,
     "sd_docs_url":"http://127.0.0.1:7880/docs",
     "default_model":{
-        "model":"dreamshaper_8.safetensors [879db523c3]",
-        "sampler":"DPM++ 2M SDE Karras",
+        "model":"...",
+        "sampler":"...",
         "vae":"..."
     },
-    "custom_hints":[],
+    "custom_hints":[
+        "在提示词中添加“amiya (arknights)”这样的词(只能用英文)，可以绘制泰拉上朋友们的图片哦。",
+        "鸣谢天基对本插件的大力支持（指提供服务器）。",
+        "试试魔法咒语 “ (furina (genshin impact):1) ”（大胆！）",
+        "试试 (quan (kurisu tina)) 或者 (sakimichan)"
+    ],
     "save_result":true,
-    "batch_count":4,
-    "standard_resolution":"768:432",
-    "positive_prompts":"masterpiece,best quality,ultra-detailed,best quality,high quality,newest,highres,",
-    "negative_prompts":"lowres,bad anatomy,bad hands,text,error,missing fingers,extra digit,fewer digits,cropped,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,username,blurry,artist name,",
+    "batch_count":1,
+    "standard_resolution":"1216:832",
+    "positive_prompts":"masterpiece,best quality,ultra-detailed,best quality,high quality,newest,highres,very awa,",
+    "negative_prompts":"(worst quality:2),(normal quality:2),lowres,normal quality,logo,text,blurry,low quality,bad anatomy,sketches,monochrome,grayscale,username,out of focus,bad proportions,cropped,watermark,signature,worstquality,NSFW,bad body,mutated,missing limb,bad feet,badhandv4,bad hands,missing fingers,too many fingers,fused fingers,poorly drawn hands,mutated hands,nsfw",
+    "extra_params":"{\"steps\": 35,\"cfg_scale\": 3.5}",
     "no_service_prompt":"呜呜呜非常抱歉，兔兔现在无法提供绘图服务。",
     "ai_translate":"...",
     "show_log":false

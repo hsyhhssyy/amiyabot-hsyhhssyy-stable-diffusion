@@ -112,7 +112,7 @@
 ```json
 {
     "steps": 35,
-    "cfg_scale": 3.5,
+    "cfg_scale": 3.5
 }
 ```
 
