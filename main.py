@@ -8,6 +8,7 @@ from core import Requirement
 
 from .src.plugin_instance import StableDiffusionPluginInstance
 from .src.message_handler import get_channel_queue,handle_message
+from .src.stable_diffusion import simple_img_task
 
 curr_dir = os.path.dirname(__file__)
 
@@ -22,14 +23,17 @@ def dynamic_get_global_config_schema_data():
 
 bot = StableDiffusionPluginInstance(
     name='StableDiffusion绘图',
-    version='0.2.2',
+    version='0.3.0',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
     description='安装前请读一下插件文档',
     document=f'{curr_dir}/README.md',
+    instruction=f'{curr_dir}/README_USE.md',
     global_config_default=f'{curr_dir}/accessories/global_config_default.json',
     global_config_schema = dynamic_get_global_config_schema_data
 )
+
+bot.simple_img_task = simple_img_task
 
 def enabled_in_this_channel(channel_id:str) -> bool:
     black_list_mode:bool = bot.get_config("black_list_mode")

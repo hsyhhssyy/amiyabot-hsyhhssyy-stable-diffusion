@@ -1,33 +1,24 @@
 # StableDiffusion绘图
 
+插件全新重做！
+
 提供一个调用StableDiffusion WebUI的兔兔功能。
 
 **提示**：使用本功能前，请确保你已经在本地部署了StableDiffuion。不清楚如何部署？推荐参考B站大佬秋叶akki的教程: https://www.bilibili.com/video/BV1iM4y1y7oA。
 
-以前的兔兔绘图插件被拆分成两个独立插件，一个纯AI绘图插件，和一个整合插件。本插件就是这个纯AI绘图插件。
+**进阶提示**：推荐使用NoobAI-XL（V-预测），[https://d0xb9r3fg5h.feishu.cn/docx/WWOHdr6RMoQZxQxCZRGc5KlEnUi](https://d0xb9r3fg5h.feishu.cn/docx/WWOHdr6RMoQZxQxCZRGc5KlEnUi) ，本插件附带的默认配置文件，是经过调整完美适配NoobAI-XL（V-预测）的配置文件。如果你使用其他模型，或者不使用V-预测，请不要使用默认值，而是修改配置文件。
 
 ## 绘图命令
 
-每个群内用户，可以使用`兔兔绘图：琴柳穿着jk在海边漫步`这样的关键词来进行绘画，兔兔会稍后在群内回复画好的图片，效果如下：
+每个群内用户，可以使用`兔兔绘图：A girl wearing a JK is walking along the seaside.`这样的关键词来进行绘画。
 
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-1.png)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/image-3.png)
-![Alt text](<https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/)@8LU4KD0FMQVPCXA(9T(ZI.png>)
-![Alt text](https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/7KQBVL69%7BZLAGFSPUN055I9.png)
-
-命令必须以`兔兔绘图：`开头，注意兔兔不可以换成任意其他唤醒词。此外，还可以在消息的结尾使用 -ar 16:9 -hr -lr 来指定分辨率和输出高分辨率，低分辨率图形。
-
-## 图生图
-
-可以通过在消息中包含一张或者两张图片的形式来进行图生图绘制。
-
-![Alt text](<https://raw.githubusercontent.com/hsyhhssyy/amiyabot-hsyhhssyy-stable-diffusion/master/images/S6JM_0$AA6B1HYDIU}(W2_7.png>)
+> 不开启AI翻译的话，默认StableDiffusion是仅支持英文的，因此插件会将所有中文裁切掉，以防干扰模型。
 
 ## 绘图队列
 
-目前版本下，当兔兔有绘图任务时，会将其他新任务排队，队列总长度为5，每个群不可超过2。
-
-队列这么短是因为不想耽误太长时间，一个任务的运行需要三五分钟，5个任务就已经是半小时以后了。
+目前版本下，当兔兔有绘图任务时，会将其他新任务排队。
+队列总长度可由配置项设置，所有群共用。
+每个群最大队列长度为总长度的一半。
 
 ## 安装要求
 
@@ -56,12 +47,80 @@
 
 ```log
 
-2023-10-10 12:47:13,844 [AIPainting][     INFO] 因docs变化而重载WebUIApi...
-2023-10-10 12:47:13,918 [AIPainting][     INFO] WebUIApi刷新完毕...
+2023-10-10 12:47:13,844 [StableDiffusion][     INFO] 因docs变化而重载WebUIApi...
+2023-10-10 12:47:13,918 [StableDiffusion][     INFO] WebUIApi刷新完毕...
 
 ```
 
-此时已经连上了WebUI Api，可以开始绘图了。
+此时已经连上了WebUI Api。
+
+### 修改模型
+
+接下来，请刷新兔兔Console，从而让插件配置项重载。
+
+然后在插件配置项的 默认模型-> 模型 中选择一个模型。
+
+> 注：如果你使用NoobAI-XL，请在这里选择NoobAI-XL对应的模型。
+
+然后，选择一个采样器。
+
+> 注：如果你使用NoobAI-XL，NoobAI-XL对采样器有严格要求，请根据你的NoobAI版本，在文档中找到合适的采样器，一般是Euler或者Euler A
+
+再然后，选择一个vae
+
+> 注：如果你使用NoobAI-XL，NoobAI要求不使用vae，请选择 `...`
+
+现在，你可以开始绘图了
+
+## 其他配置
+
+你需要根据你的SD中的模型，调整下面的配置。
+（或者如果你使用NoobAI-XL，那么你可以使用默认配置）
+
+### 正则表达式
+
+可以通过正则表达式对提示词进行一定的预处理。
+
+比如可以配置表达式为`\(op:(\w+)\)`，替换为 `(\1_(arknights:1))`，这样就可以人工制造一个新指令：(干员:amiya) ，并使其产生特殊提示词。
+
+或者使用负向断言表达`^(?!.*artist:[^,]+,)(?!.*artist:[^,]+$).*`，替换为`\g<0>, artist:momoko_(momopoco)`，这样就可以在提示词不包含artist的时候，添加一个artist tag。
+
+### 自定义提示
+
+可以添加一些你的随机小提示，比如：
+
+`在提示词中添加“(op:amiya)”这样的词(只能用英文)，可以绘制泰拉上朋友们的图片哦。`
+
+### 额外参数
+
+可以通过这个字段提供一些额外的Json参数。控制SD使用HighRes等功能。
+这个配置项接受一个json字符串。字符串的key是参数名，value是参数值。
+具体可以去你的SD的docs中，查找 /sdapi/v1/txt2img 这个 api的介绍。
+
+例如，你可以添加下面这段自定义参数，来使用HighRes:
+
+```json
+{
+    "enable_hr":true,
+    "hr_upscaler":"SwinIR_4x",
+    "hr_second_pass_steps":10,
+    "denoising_strength":0.3
+}
+```
+
+或者调节SD的生成参数，如：
+```json
+{
+    "steps": 35,
+    "cfg_scale": 3.5,
+}
+```
+
+## AI翻译
+
+因为源生SD只能使用英文，因此你可以选择使用AI翻译。如果你安装了大语言模型库，那么你可以选择一个模型，这样插件会先用这个AI模型，将用户的输入翻译为英文并拆解为danboru tag。
+或者选择“不使用”以关闭。
+注意，你选择的这个ai不能太笨，不然可能会破坏原有输入的tag，反而还不如手动翻译。
 
 ## 版权声明
 

@@ -1,0 +1,11 @@
+Please translate the following sentence into English.(IMPORTANT!!!) 
+"<<PROMPT>>".
+Requirements:
+1. You should output your translation in a json object.
+your output should be like:
+{
+    "en_translation":"your translated sentence here, in English (IMPORTANT!!!) "
+}
+2. If the sentence have English parts, please keep them as is.
+3. Do not change any punctuation mark and their orders. (IMPORTANT!!!)
+4. Please give me only the output. Skip the steps you think (IMPORTANT!!!) and skip the explainations for your output (IMPORTANT!!!).

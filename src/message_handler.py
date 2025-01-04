@@ -14,9 +14,6 @@ from ..lib.bot_core_util import get_quote_id
 
 curr_dir = os.path.dirname(__file__)
 
-MAX_TASKS_PER_CHANNEL = 2
-MAX_GLOBAL_TASKS = 5
-
 HintFile = f"{curr_dir}/../accessories/Hints.txt"
 
 current_task_count = 0
@@ -85,7 +82,7 @@ async def process_queue():
     while True:
         task = task_queue.get()
         current_task_count = 1
-        plugin, data, prompt,task = task['plugin'], task['data'], task['prompt'], task['task']
+        plugin, data, prompt,sd_task = task['plugin'], task['data'], task['prompt'], task['task']
         if plugin is None:
             break
         
@@ -94,6 +91,10 @@ async def process_queue():
         random_hint = None
         with open(HintFile, 'r', encoding='utf-8') as f:
             hints = [line for line in f.readlines() if not line.strip().startswith('#')]
+            custom_tips = plugin.get_config("custom_tips")
+            if custom_tips is not None:
+                hints.extend(custom_tips)
+
             random_hint = hints[random.randint(0, len(hints)-1)]
 
         try:
@@ -109,12 +110,13 @@ async def process_queue():
                 task_prompt = "（图生图）"
 
             time = count_time(plugin,prompt)
-            await data.send(Chain(data, at=False).text(f'兔兔开始绘制{task_prompt}，约需{round(time/2)}-{round(time)}秒，请稍等：{global_queue_length_str}\n{prompt}\n[小提示：{random_hint.strip()}]'))
 
-            if quote_id==0:            
-                await simple_img_task(plugin, data, prompt,task)
-            else:
-                await high_res_task(plugin, data, quote_id)
+            task['time'] = time
+            task['type'] = task_prompt
+            task['queue_length'] = global_queue_length_str
+            task['random_hint'] = random_hint
+            
+            await simple_img_task(plugin, data, prompt, task)
         except Exception as e:
             stack_trace = traceback.format_exc()
             plugin.debug_log(f"兔兔绘图任务出现异常：{e}\n{stack_trace}")
@@ -158,14 +160,18 @@ async def handle_message(plugin: StableDiffusionPluginInstance, data):
         await data.send(Chain(data, at=False).text(f'抱歉，您提出的要求格式不正确。'))
         return
 
+    max_global_tasks = plugin.get_config("total_queue_size")
+    if max_global_tasks is None:
+        max_global_tasks = 5
+
     if queue_lock.acquire(timeout=5):  # 尝试获取锁，等待最多5秒
         try:
-            if task_queue.qsize() >= MAX_GLOBAL_TASKS:
-                await data.send(Chain(data, at=False).text(f'抱歉，全局任务已满，请稍后再试。'))
+            if task_queue.qsize() >= max_global_tasks:
+                await data.send(Chain(data, at=False).text(f'抱歉，任务队列已满，请稍后再试。'))
                 return
 
             channel_tasks = channel_task_count.get(data.channel_id, 0)
-            if channel_tasks >= MAX_TASKS_PER_CHANNEL:
+            if channel_tasks >= max_global_tasks/2:
                 await data.send(Chain(data, at=False).text(f'抱歉，当前频道任务队列已满，请稍后再试。'))
                 return
 

@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "properties": {    
+  "properties": {
     "black_list_mode": {
       "title": "黑名单模式",
       "description": "开启时是全局启用，黑名单中频道不启用的模式。关闭时则是全局不启用但是白名单中频道启用的模式。",
       "type": "boolean"
-    },    
+    },
     "black_white_list": {
       "title": "黑/白名单",
       "description": "频道id的列表，用于在黑白名单模式充当黑白名单",
@@ -17,13 +17,31 @@
       "description": "你的WebUI的FastApi文档路径，通常来说是类似于“http://localhost:7777/docs”的地址，你需要试着访问一下看看是否能使用",
       "type": "string"
     },
+    "detail_reply": {
+      "title": "详细任务内容提示",
+      "description": "开启后兔兔在回复你任务开启时，会提供详细内容。",
+      "type": "boolean"
+    },
+    "total_queue_size": {
+      "title": "最大队列长度",
+      "description": "跨越所有群的总队列长度。",
+      "type": "integer"
+    },
     "default_model": {
       "title": "默认模型",
-      "description": "anime使用的Model/Checkpoint",
+      "description": "默认使用的Model/Checkpoint",
       "type": "object",
       "properties": {
         "model": {
           "title": "模型",
+          "description": "Model/Checkpoint",
+          "type": "string",
+          "enum": [
+            "..."
+          ]
+        },
+        "sampler": {
+          "title": "采样器",
           "description": "Model/Checkpoint",
           "type": "string",
           "enum": [
@@ -40,6 +58,31 @@
         }
       }
     },
+    "prompt_regs": {
+      "title": "提示词处理",
+      "description": "提示词会根据下列规则进行预处理。(使用Python的re.sub函数)",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "规则名称",
+            "description": "规则名称",
+            "type": "string"
+          },
+          "regexp": {
+            "title": "正则表达式",
+            "description": "正则表达式",
+            "type": "string"
+          },
+          "replacement": {
+            "title": "替换",
+            "description": "替换",
+            "type": "string"
+          }
+        }
+      }
+    },
     "positive_prompts": {
       "title": "Positive Prompts",
       "description": "提示词，会额外被应用于每一个生成",
@@ -50,10 +93,20 @@
       "description": "负面提示词，会被应用于每一个生成",
       "type": "string"
     },
+    "extra_params": {
+      "title": "额外参数",
+      "description": "如需指定额外参数，请在此提供JsonStr，key是参数名，value是参数值。",
+      "type": "string"
+    },
     "no_service_prompt": {
       "title": "无服务提示",
       "description": "如果SD服务无法连接，兔兔会回复的话。",
       "type": "string"
+    },
+    "custom_tips": {
+      "title": "自定义提示",
+      "description": "自定义提示",
+      "type": "array"
     },
     "show_log": {
       "title": "调试日志",
@@ -62,19 +115,27 @@
     },
     "batch_count": {
       "title": "输出数量",
-      "description": "开启后将写入用于调试的大量日志。",
+      "description": "一次指令一共输出的最多图片数量（1-9）。",
       "type": "integer",
       "minimum": 1,
       "maximum": 9
     },
     "standard_resolution": {
       "title": "默认分辨率",
-      "description": "开启后将写入用于调试的大量日志。",
+      "description": "输出图像的分辨率，格式为 宽:高",
       "type": "string"
+    },
+    "ai_translate": {
+      "title": "AI翻译",
+      "description": "使用大语言模型翻译用户的原始提示词。",
+      "type": "string",
+      "enum": [
+        "不使用"
+      ]
     },
     "save_result": {
       "title": "保存生成结果",
-      "description": "开启后将写入用于调试的大量日志。",
+      "description": "开启后将绘图结果保存到resource/stable-diffusion/output下，注意清理。",
       "type": "boolean"
     }
   },

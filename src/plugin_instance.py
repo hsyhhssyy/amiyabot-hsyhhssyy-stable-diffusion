@@ -15,7 +15,6 @@ from core import bot as main_bot
 from amiyabot.log import LoggerManager
 
 from ..lib.webuiapi import WebUIApi
-from .developer_type import BLMAdapter
 
 curr_dir = os.path.dirname(__file__)
 
@@ -59,23 +58,46 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         # 检查缓存
         if "models" in self.cache:
             new_values += self.cache["models"]
-            self.debug_log(f"models : {new_values}")
-            try:                        
-                data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values                
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+        self.debug_log(f"models : {new_values}")
+        try:                        
+            data["properties"]["default_model"]["properties"]["model"]["enum"] = new_values                
+        except KeyError as e:
+            stack_trace = traceback.format_exc()
+            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
         
+
+        new_values = ["..."]
+        
+        # 检查缓存
+        if "samplers" in self.cache:
+            new_values += self.cache["samplers"]
+        self.debug_log(f"models : {new_values}")
+        try:                        
+            data["properties"]["default_model"]["properties"]["sampler"]["enum"] = new_values                
+        except KeyError as e:
+            stack_trace = traceback.format_exc()
+            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
         new_values = ["..."]
         
         if "vae" in self.cache:
             new_values += self.cache["vae"]
-            self.debug_log(f"vae : {new_values}")
-            try:                        
-                data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
-            except KeyError as e:
-                stack_trace = traceback.format_exc()
-                self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+        self.debug_log(f"vae : {new_values}")
+        try:                        
+            data["properties"]["default_model"]["properties"]["vae"]["enum"] = new_values
+        except KeyError as e:
+            stack_trace = traceback.format_exc()
+            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}")
+
+        new_values = ["..."]
+        if 'chat_models' in self.cache:
+            new_values += self.cache['chat_models']
+        self.debug_log(f"chat_models : {new_values}")
+        try:
+            data["properties"]["ai_translate"]["enum"] = new_values
+        except KeyError as e:
+            stack_trace = traceback.format_exc()
+            self.debug_log(f"Expected keys not found in the JSON structure: {e}\n{stack_trace}") 
 
         return data
 
@@ -88,6 +110,15 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         threading.Thread(target=wrapper).start()
 
     def __refresh_api(self):
+
+        if 'amiyabot-blm-library' in main_bot.plugins.keys():
+            blm_lib = main_bot.plugins['amiyabot-blm-library']
+            
+            if blm_lib is not None:
+                model_list = blm_lib.model_list()
+
+                self.cache["chat_models"] = [model["model_name"] for model in model_list]
+
 
         docs = self.get_config("sd_docs_url")
 
@@ -114,20 +145,22 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         
         if parsed_url:
             if parsed_url.hostname and parsed_url.port: 
-                self.webui_api = WebUIApi(host=parsed_url.hostname, port=parsed_url.port)
+                self.webui_api = WebUIApi(host=parsed_url.hostname, port=parsed_url.port,
+                                          use_https = parsed_url.scheme == 'https')
             else:
-                self.debug_log(f'Stable Diffusion Webui 地址 {docs} 有误，请确认他是否以http://或https://开头')
-                self.webui_api  = WebUIApi(host=parsed_url.netloc, port=80)
+                # docs 移除最后的/docs字符串再拼上/sdapi/v1
+                if docs.endswith("/docs"):
+                    base_url = docs[:-5] + "/sdapi/v1"
+                    self.webui_api  = WebUIApi(baseurl=base_url)
+        
+
+        if self.webui_api:            
+            self.debug_log(f"Stable Diffusion Webui 地址成功设置为 {self.webui_api.baseurl}")
         else:
             self.debug_log(f'Stable Diffusion Webui 地址 {docs} 有误，请确认他是否以http://或https://开头')
-
-        if self.webui_api == None:
             return
 
         self.__cached_docs = docs
-
-        def get_value_from_key(obj, primary_key, secondary_key):
-            return obj.get(primary_key, {}).get(secondary_key, None)
 
         try:
             models = self.webui_api.get_sd_models()
@@ -139,6 +172,17 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
         except Exception as e:
             self.debug_log(f"Error accessing API: {e}")
         
+
+        try:
+            samplers = self.webui_api.get_samplers()
+
+            self.debug_log(f'get_samplers:{models}')
+
+            # 将查询结果存储到缓存中
+            self.cache["samplers"] = [model["name"] for model in samplers]
+        except Exception as e:
+            self.debug_log(f"Error accessing API: {e}")
+
         try:
             models = self.webui_api.get_sd_vae()
 
