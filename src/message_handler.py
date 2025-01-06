@@ -120,7 +120,7 @@ async def process_queue():
         except Exception as e:
             stack_trace = traceback.format_exc()
             plugin.debug_log(f"兔兔绘图任务出现异常：{e}\n{stack_trace}")
-            await data.send(Chain(data, at=False).text(f'兔兔绘图任务出现异常，请重试。出错的任务是：{prompt}'))
+            await data.send(Chain(data, at=False).text(f'(｡>﹏<｡)真抱歉，兔兔画画的过程中遇到了一些问题。遇到问题的是：{prompt}'))
         
         if queue_lock.acquire(timeout=5):  # 尝试获取锁，等待最多5秒
             try:
@@ -157,7 +157,7 @@ async def handle_message(plugin: StableDiffusionPluginInstance, data):
 
     if not prompt:
         plugin.debug_log(f"正则表达式未通过")
-        await data.send(Chain(data, at=False).text(f'抱歉，您提出的要求格式不正确。'))
+        await data.send(Chain(data, at=False).text(f'(｡•́︿•̀｡)抱歉博士，您提出的要求格式不正确。'))
         return
 
     max_global_tasks = plugin.get_config("total_queue_size")
@@ -167,18 +167,18 @@ async def handle_message(plugin: StableDiffusionPluginInstance, data):
     if queue_lock.acquire(timeout=5):  # 尝试获取锁，等待最多5秒
         try:
             if task_queue.qsize() >= max_global_tasks:
-                await data.send(Chain(data, at=False).text(f'抱歉，任务队列已满，请稍后再试。'))
+                await data.send(Chain(data, at=False).text(f'(；´д｀)抱歉博士，兔兔现在忙不过来了。'))
                 return
 
             channel_tasks = channel_task_count.get(data.channel_id, 0)
             if channel_tasks >= max_global_tasks/2:
-                await data.send(Chain(data, at=False).text(f'抱歉，当前频道任务队列已满，请稍后再试。'))
+                await data.send(Chain(data, at=False).text(f'(；´д｀)抱歉博士，兔兔现在忙不过来了。'))
                 return
 
             channel_task_count[data.channel_id] = channel_tasks + 1
 
             if current_task_count > 0 or task_queue.qsize() > 0:
-                await data.send(Chain(data, at=False).text(f'兔兔当前有其他任务，您的任务已加入队列，请稍等......'))
+                await data.send(Chain(data, at=False).text(f'兔兔正在忙着画别的呢，博士的需求兔兔记下了，请博士再稍微等一等。'))
             else:
                 # await data.send(Chain(data, at=False).text(f'兔兔要开始画图了，请稍等......'))
                 pass

@@ -29,9 +29,6 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
     __cached_docs = None
 
     def install(self):
-        pass
-    def load(self):
-
         if not os.path.exists(PLUGIN_ACCESSORIES_DIR):
             os.makedirs(PLUGIN_ACCESSORIES_DIR)
 
@@ -121,6 +118,9 @@ class StableDiffusionPluginInstance(AmiyaBotPluginInstance):
 
 
         docs = self.get_config("sd_docs_url")
+
+        if docs is None or docs == "":
+            return
 
         try:
             response = requests.get(docs)

@@ -12,6 +12,14 @@
 
 每个群内用户，可以使用`兔兔绘图：A girl wearing a JK is walking along the seaside.`这样的关键词来进行绘画。
 
+下面是一些例子：
+
+`兔兔绘图：2girls,1girl,amiya (arknights),1girl,typhon (arknights), back-to-back,look at screen, quan (kurisu tina)`
+![例子1](images/demo_image1.png)
+
+`兔兔绘图：1girl, w (arknights),1girl,ahoge,looking at viewer,open mouth,portrait,smile,solo,vest, zoom layer, ask (askzy)`
+![例子2](images/demo_image2.png)
+
 > 不开启AI翻译的话，默认StableDiffusion是仅支持英文的，因此插件会将所有中文裁切掉，以防干扰模型。
 
 ## 绘图队列
@@ -133,6 +141,9 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 **StableDiffusion不带道德校验模块，兔兔可能会产生色情，暴力，反动，版权侵害等违法行为。**
 **兔兔运营方应当关注兔兔的生成内容并及时处理，出现任何法律责任，本项目概不负责。**
 
+本插件支持使用 [百度AI开放平台的内容审核平台](https://cloud.baidu.com/doc/ANTIPORN/s/6ki012lqu) 对图片进行审核，价格约为100元10万张图左右。如果你觉得管不住群友的手，可以酌情开启。
+请在百度控制台启用该服务后，填入AK和SK。填入后，如果API调用失败吗，或识别到不良图片，会报错而不返回任何图片。
+
 ## 帮助更小白的用户
 
 - 完善文档，这篇文档写的非常简略，对于没有StableDiffusion经验的人来说可能会比较困难，同时还缺少一些步骤的截图。如果您有兴趣帮忙修改文档，您可以直接在Github提出PR。
@@ -149,4 +160,5 @@ SD WebUI 使用AGPL版权。AGPL是一个强限制的开源协议，访问任何
 
 |  版本   | 变更  |
 |  ----  | ----  |
-| 0.1.0  | 最初的版本 |
+| 0.3.0  | 重做的版本 |
+| 0.3.1  | 加入百度图片审核的支持，回复颜文字化 |

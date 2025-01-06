@@ -31,9 +31,9 @@ jk, 1-girl, seaside, walking, masterpiece,best quality,ultra-detailed,best quali
 
 艺术家的名字，或者角色的名字，也是去上面 [https://danbooru.donmai.us/tags](https://danbooru.donmai.us/tags) 去找。
 
-一些比较有趣的艺术家：`(momoko_(momopoco))` `(ebifurya)` `(sakimichan)` `(quan (kurisu tina))` `(moriyama shijimi)`
+一些比较有趣的艺术家：`(momoko_(momopoco))` `(ebifurya)` `(sakimichan)` `(quan (kurisu tina))` `(moriyama shijimi)` `(kase daiki)` `(as109)`
 
-一般来说，画风独特，并且作品量大的画师，AI会学习的更好。
+一般来说，画风独特，并且作品量大的画师，AI会学习的更好。尤其推荐`(quan (kurisu tina))`,特别容易出图。
 
 ### 多输入一点提示词
 

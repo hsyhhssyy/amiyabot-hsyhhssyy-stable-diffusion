@@ -133,6 +133,16 @@
         "不使用"
       ]
     },
+    "bce_ak": {
+      "title": "百度图片审核AK",
+      "description": "填写后调用百度图片审核API审核图片。",
+      "type": "string"
+    },
+    "bce_sk": {
+      "title": "百度图片审核SK",
+      "description": "填写后调用百度图片审核API审核图片。",
+      "type": "string"
+    },
     "save_result": {
       "title": "保存生成结果",
       "description": "开启后将绘图结果保存到resource/stable-diffusion/output下，注意清理。",

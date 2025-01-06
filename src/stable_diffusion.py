@@ -20,6 +20,7 @@ from ..lib.mathmatic import compute_dimensions, compute_dimensions_from_value
 from ..lib.pil_utils import combine_images
 from ..lib.bot_core_util import get_response_id
 from ..lib.string_utils import extract_outer_parentheses
+from .bce import anti_porn
 
 from core import bot as main_bot
 
@@ -148,12 +149,12 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
 
     detail_reply = plugin.get_config("detail_reply")
     if detail_reply:
-        await data.send(Chain(data, at=False).text(f"兔兔开始绘制{task['type']}，请稍等：{task['queue_length']}\n"
+        await data.send(Chain(data, at=False).text(f"兔兔马上开始画 {task['type']}，博士稍等哦：{task['queue_length']}\n"
                                                 + f"提示词：{user_prompt}\n"
                                                 + f"负面提示：{negative_prompt}\n"
                                                 + f"[小提示：{task['random_hint'].strip()}]"))
     else:
-        await data.send(Chain(data, at=False).text(f"兔兔开始绘制 {task['prompt']}，请稍等。{task['queue_length']}"
+        await data.send(Chain(data, at=False).text(f"兔兔马上开始画 {task['prompt']}，博士稍等哦。{task['queue_length']}\n"
                                                    + f"[小提示：{task['random_hint'].strip()}]"))
 
     # 生成batch_count长度的数组，每个数组元素都是原始输入
@@ -303,27 +304,43 @@ async def simple_img_task(plugin: StableDiffusionPluginInstance, data: Message, 
             (datetime.datetime.now() - grid_start_time).total_seconds(), 2)
 
         if len(images_output) > 1:
-            new_img = combine_images(images_output)
-            buffer = BytesIO()
-            file_ext = param_dict.get('GIF') and "GIF" or "PNG"
-            new_img.save(buffer, format=file_ext)
-            img_bytes = buffer.getvalue()
-            draw_result_msg = await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
-            id = get_response_id(draw_result_msg)
-            plugin.debug_log(f"发出消息，Id: {id}")
-            genrated_images[id] = drawing_params
+            validation = None
+            for img in images_output:
+                single_validation = anti_porn(plugin, img)
+                if single_validation == False:
+                    validation = False
+                    break
+
+            if(validation==False):
+                draw_result_msg = await data.send(Chain(data, at=False).text(f'(＞﹏＜)，博士想让兔兔画羞羞的东西吗，那可不行。'))
+            else:
+                new_img = combine_images(images_output)
+                buffer = BytesIO()
+                file_ext = param_dict.get('GIF') and "GIF" or "PNG"
+                new_img.save(buffer, format=file_ext)
+                img_bytes = buffer.getvalue()
+                draw_result_msg = await data.send(Chain(data, at=False).text(f'兔兔画好了！用了{grid_total_second}秒：').image(img_bytes))
+                id = get_response_id(draw_result_msg)
+                plugin.debug_log(f"发出消息，Id: {id}")
+                genrated_images[id] = drawing_params
         elif len(images_output) == 1:
             buffer = BytesIO()
             file_ext = param_dict.get('GIF') and "GIF" or "PNG"
             images_output[0].save(buffer, format=file_ext)
             img_bytes = buffer.getvalue()
-            draw_result_msg = await data.send(Chain(data, at=False).text(f'绘图结果，用时{grid_total_second}秒：').image(img_bytes))
-            id = get_response_id(draw_result_msg)
-            plugin.debug_log(f"发出消息，Id: {id}")
-            genrated_images[id] = drawing_params
+
+            validation = anti_porn(plugin, img_bytes)
+
+            if(validation==False):
+                draw_result_msg = await data.send(Chain(data, at=False).text(f'(＞﹏＜)，博士想让兔兔画羞羞的东西吗，那可不行。'))
+            else:
+                draw_result_msg = await data.send(Chain(data, at=False).text(f'兔兔画好了！用了{grid_total_second}秒：').image(img_bytes))
+                id = get_response_id(draw_result_msg)
+                plugin.debug_log(f"发出消息，Id: {id}")
+                genrated_images[id] = drawing_params
     else:
         plugin.debug_log(f"ChatGPT Response not success")
-        await data.send(Chain(data, at=False).text(f'真抱歉，您的提示词似乎出了点问题，请再试一次吧。'))
+        await data.send(Chain(data, at=False).text(f'(｡>﹏<｡)真抱歉，兔兔画画的过程中遇到了一些问题，请博士再试一次吧。'))
 
     plugin.debug_log(f"退出兔兔绘图功能")
 

@@ -2,28 +2,37 @@ import sys
 import os
 import re
 
-
-if len(sys.argv) < 3:
-    print("请使用build或者test命令，然后输入一个数字参数")
-    exit()
-
 amiya_bot_plugin_paths = [
     "/mnt/amiya-bot/2912336120/plugins",
     "/mnt/amiya-bot/2604475967/plugins"
 ]
 
 command = sys.argv[1]
-index = int(sys.argv[2])-1
 
-if index >= len(amiya_bot_plugin_paths):
-    print("请输入正确的数字参数，范围为1到{}".format(len(amiya_bot_plugin_paths)))
+if command != "build" and command != "test" and command != "reboot":
+    print("请使用build,reboot或者test命令")
     exit()
 
-amiya_bot_plugin_path = amiya_bot_plugin_paths[index]
 
-if command != "build" and command != "test":
-    print("请使用build或者test命令")
-    exit()
+if command == "test" or command == "reboot":
+    if len(sys.argv) < 3:
+        print("请使用test命令，然后输入一个数字参数")
+        exit()
+
+    amiya_bot_plugin_paths = [
+        "/mnt/amiya-bot/2912336120/plugins",
+        "/mnt/amiya-bot/2604475967/plugins"
+    ]
+
+    index = int(sys.argv[2])-1
+
+    if index >= len(amiya_bot_plugin_paths):
+        print("请输入正确的数字参数，范围为1到{}".format(len(amiya_bot_plugin_paths)))
+        exit()
+
+    amiya_bot_plugin_path = amiya_bot_plugin_paths[index]
+else:
+    amiya_bot_plugin_path = None
 
 def read_file(file_name):
     # 获取当前脚本所在的目录
@@ -62,37 +71,39 @@ plugin_id = plugin_id_match.group(1)
 if command=="build":
     os.system(f'rm {plugin_id}-*.zip')
     os.system(f'zip -q -r {plugin_id}-{version}.zip *')
-else:
+elif command=="test":
     os.system(f'sudo rm {plugin_id}-*.zip')
     os.system(f'zip -q -r {plugin_id}-{version}.zip *')
     os.system(f'sudo rm -rf {amiya_bot_plugin_path}/{plugin_id}-*')
     os.system(f'cp {plugin_id}-*.zip {amiya_bot_plugin_path}/')
+elif command=="reboot":
 
     # 如果您是docker请用这一句
     # os.system(f'docker restart amiya-bot')
 
-    # 下面这句是在kubernetes下，重新创建指定dep下的所有pod
-    app_names = [
-        "amiya-bot-1-deployment",
-        "amiya-bot-2-deployment"
-    ]
+        # 下面这句是在kubernetes下，重新创建指定dep下的所有pod
 
-    app_name = app_names[index]
+        app_names = [
+            "amiya-bot-1-deployment",
+            "amiya-bot-2-deployment"
+        ]
 
-    namespace_name = "amiya-bot"
+        app_name = app_names[index]
 
-    # 获取指定Deployment的所有Pod
-    get_pods_command = f"kubectl get pods -l app={app_name} -n {namespace_name} -o jsonpath='{{.items[*].metadata.name}}'"
+        namespace_name = "amiya-bot"
 
-    # 使用os.system执行命令并获取所有Pod的名称
-    pods = os.popen(get_pods_command).read().split()
+        # 获取指定Deployment的所有Pod
+        get_pods_command = f"kubectl get pods -l app={app_name} -n {namespace_name} -o jsonpath='{{.items[*].metadata.name}}'"
 
-    # 遍历Pod列表并删除每个Pod
-    for pod in pods:
-        delete_pod_command = f"kubectl delete pod -n {namespace_name} {pod}"
-        os.system(delete_pod_command)
-        print(f"Deleted pod: {pod}")
+        # 使用os.system执行命令并获取所有Pod的名称
+        pods = os.popen(get_pods_command).read().split()
 
-    print("All pods have been deleted. Kubernetes will recreate the pods.")
+        # 遍历Pod列表并删除每个Pod
+        for pod in pods:
+            delete_pod_command = f"kubectl delete pod -n {namespace_name} {pod}"
+            os.system(delete_pod_command)
+            print(f"Deleted pod: {pod}")
+
+        print("All pods have been deleted. Kubernetes will recreate the pods.")
     
 

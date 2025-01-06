@@ -23,7 +23,7 @@ def dynamic_get_global_config_schema_data():
 
 bot = StableDiffusionPluginInstance(
     name='StableDiffusion绘图',
-    version='0.3.0',
+    version='0.3.1',
     plugin_id='amiyabot-hsyhhssyy-stable-diffusion',
     plugin_type='',
     description='安装前请读一下插件文档',
@@ -59,12 +59,12 @@ async def _(data: Message):
 
     queue_text = get_channel_queue(data.channel_id)
     if len(queue_text) == 0:
-        await data.send(Chain(data, at=False).text(f'当前频道没有正在处理的兔兔绘图任务。'))
+        await data.send(Chain(data, at=False).text(f'兔兔现在没有在画图哦。'))
         return
     
     queue_text_join = '\n'.join(queue_text)
 
-    await data.send(Chain(data, at=False).text(f'当前频道正在处理的兔兔绘图任务：\n{queue_text_join}'))
+    await data.send(Chain(data, at=False).text(f'兔兔正在画的画：\n{queue_text_join}'))
 
 @bot.on_message(keywords=['兔兔绘图'],level=114514)
 async def _(data: Message):
@@ -78,7 +78,7 @@ async def _(data: Message):
         if no_service_prompt and no_service_prompt != "":
             await data.send(Chain(data, at=False).text(no_service_prompt))
         else:
-            await data.send(Chain(data, at=False).text(f'抱歉，暂时无法提供服务。'))
+            await data.send(Chain(data, at=False).text(f'抱歉博士，兔兔现在暂时没办法帮您画图。'))
         return
     
     await handle_message(bot,data)
